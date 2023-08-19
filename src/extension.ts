@@ -104,7 +104,9 @@ const docsDir: string = path.join(rootDir, 'docs');
 const supportedCodeLanguages = ['py', 'js', 'ts'];
 const directoriesToIgnore = ['docs', 'node_modules', 'dist'];
 
-const openai_api_key = "";
+const configuration = vscode.workspace.getConfiguration();
+const ai_service = configuration.get('ai');
+const openai_api_key = configuration.get('openai_api_key');
 
 const recreate = false;
 const update = true;
@@ -133,8 +135,6 @@ async function* walkSync(dir: string): AsyncGenerator<string> {
 }
 
 async function askIA(prompt: string): Promise<string> {
-    const token = await vscode.credentials.getPassword(vscode.CredentialScope.Global, 'open_ai_token');
-
     const model = 'gpt-3.5-turbo';
     const headers = {
         'Content-Type': 'application/json',

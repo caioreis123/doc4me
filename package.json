@@ -12,10 +12,23 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration":[
+      {
+        "title": "Doc4Me",
+        "properties": {
+          "ai": {
+            "type": "string",
+            "default": "openai",
+            "enum": ["openai", "claude"],
+            "markdownDescription": "The ai service used to generate documentation."
+          }
+        }
+      }
+    ],
     "commands": [
       {
-        "command": "doc4me.helloWorld",
-        "title": "Hello World"
+        "command": "doc4me.doc4me",
+        "title": "doc 4 me"
       }
     ]
   },
