@@ -81,32 +81,31 @@ async function askIA(prompt: string): Promise<string> {
     };
     const jsonData = { model, messages: [{ role: 'user', content: prompt }], temperature: 0 };
     
-    await fetch("https://api.openai.com/v1/chat/completions", {
+    const explanation = await fetch("https://api.openai.com/v1/chat/completions", {
         method: 'POST',
         headers,
         body: JSON.stringify(jsonData),
-    }).then((res) => {
-        const jsonRes = res.json() as {error: string,  choices: { message: {content: string} }[] };
-    if (jsonRes.error){
-        return `Could not get explanation for this code due to: ${jsonRes.error}`
-    }
-    const explanation = jsonRes.choices[0].message.content;
-
-    return explanation;
-    })
-    
-    .catch((err) => {
-        return `Could not get explanation for this code due to: ${err}`
+    }).then(async (res) => {
+        const jsonRes = await res.json() as { error?: {message: string}, choices: { message: { content: string } }[] };
+        if (jsonRes.error) {
+            return `Could not get explanation for this code due to this issue: ${jsonRes.error.message}`;
+        }
+        return jsonRes.choices[0].message.content;
+    }).catch((err) => {
+        return `Could not get explanation for this code due to this error: ${err}`;
     });
-    
+    return explanation;
 }
 
 async function explainCode(codePath: string): Promise<string> {
-    const content = await vscode.workspace.fs.readFile(vscode.Uri.file(codePath));
+    let content: string = await vscode.workspace.fs.readFile(vscode.Uri.file(codePath)).then((res) => res.toString());
+    if(codePath.includes('helpers')){
+        console.log('helpers');
+    }
     if (!content) {
         return '';
     }
-    const prompt = question + content.toString();
+    const prompt = question + content;
     const codeExplanation = await askIA(prompt);
     return codeExplanation;
 }
