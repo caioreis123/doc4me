@@ -48,7 +48,7 @@ async function generateProjectSummary(summarization: string): Promise<void> {
 
 async function summarizeDocs(): Promise<void> {
     directoriesToIgnore.shift();
-    const docFiles = getFiles(docsPath, ['md'] );
+    const docFiles = getFiles(docsPath);
     let summarizations: string = '';
     for await (const file of docFiles) {
         if (file.endsWith('project_summary.md')){continue;}
