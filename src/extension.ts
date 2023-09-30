@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { MyConfig } from './myConfig';
-import { AI } from './AI';
+import { AI } from './ai';
 import { Utils } from './utils';
 
 
@@ -9,7 +9,7 @@ async function generateDocs(): Promise<void> {
     vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
     const utils = new Utils();
     const ai = new AI(myConfig);
-    const filesToExplain = utils.getFiles(myConfig.rootPath, myConfig.languages, myConfig.ignore);
+    const filesToExplain = utils.getFiles(myConfig.rootPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
     await ai.explainProject(filesToExplain);
     await ai.summarizeDocs();
 }

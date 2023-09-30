@@ -18,20 +18,28 @@
         "properties": {
           "directoriesToIgnore": {
             "type": "array",
-            "default": ["docs", "node_modules", "dist"],
+            "default": [
+              "docs",
+              "node_modules",
+              "dist"
+            ],
             "markdownDescription": "Files inside these directories will not be analyzed."
           },
-          "supportedCodeExtensions":{
+          "supportedCodeExtensions": {
             "type": "array",
-            "default": ["py", "js", "ts"],
+            "default": [
+              "py",
+              "js",
+              "ts"
+            ],
             "markdownDescription": "The code file extensions supported by doc4me."
           },
-          "projectExplanationPrompt":{
+          "projectExplanationPrompt": {
             "type": "string",
             "default": "Explain what this code project do, given the following explanations of each file: \n",
             "markdownDescription": "The prompt used to explain the project."
           },
-          "summarizationPrompt":{
+          "summarizationPrompt": {
             "type": "string",
             "default": "Summarize the following code explanation in at most one paragraph:\n",
             "markdownDescription": "The prompt used to summarize a code file."

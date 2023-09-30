@@ -59,13 +59,13 @@ export class AI{
         let content: string = await this.utils.readFile(vscode.Uri.file(codePath)).then((res) => res.toString());
         if (!content) {return '';}
     
-        const prompt = myConfig.explainFile + content;
+        const prompt = myConfig.explainFilePrompt + content;
         console.log(`Explaining ${codePath}`);
         const codeExplanation = await this.askIA(prompt, myConfig);
         return codeExplanation;
     }
 
-    async getFileSummarizations() {
+    async getFileSummarizations(): Promise<string> {
         let fileSummarizations: string = '';
         const docFiles = this.utils.getFiles(this.myConfig.docsPath);
         for await (const file of docFiles) {
@@ -73,7 +73,7 @@ export class AI{
             const fileContent = await this.utils.readFile(vscode.Uri.file(file));
             const contentString = fileContent.toString();
             if (contentString.startsWith(this.utils.errorMessage)) { continue; }
-            const prompt: string = this.myConfig.summarize + contentString;
+            const prompt: string = this.myConfig.summarizePrompt + contentString;
             const summarizationSentence: string = await this.askIA(prompt, this.myConfig);
             fileSummarizations += `${file}\n${summarizationSentence}\n\n`;
         }
@@ -86,7 +86,7 @@ export class AI{
     }
     
     async generateProjectSummary(summarization: string, myConfig: MyConfig): Promise<void> {
-        const prompt = myConfig.explainProject + summarization;
+        const prompt = myConfig.explainProjectPrompt + summarization;
         const projectSummary = await this.askIA(prompt, myConfig);
         const summaryFilePath = path.join(myConfig.docsPath, this.utils.summaryFileName);
         const summaryFile = vscode.Uri.file(summaryFilePath);
