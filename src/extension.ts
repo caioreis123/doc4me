@@ -21,7 +21,10 @@ function getInstances() {
 
 async function documentCurrentFile(): Promise<void> {
     const { utils, myConfig, ai } = getInstances();
-    let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath || "";
+    let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
+    if (!currentFile) {
+        throw new Error('No file is currently open');
+    }
     await ai.explainFile(currentFile);
 }
 
