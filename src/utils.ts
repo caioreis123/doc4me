@@ -3,8 +3,8 @@ import * as path from 'path';
 
 export class Utils{
     public readonly summaryFileName = 'project_summary.md';
-    public readonly readFile = vscode.workspace.fs.readFile;
-    public readonly writeFile = vscode.workspace.fs.writeFile;
+    public readFile = vscode.workspace.fs.readFile;
+    public writeFile = vscode.workspace.fs.writeFile;
     public readonly readDirectory = vscode.workspace.fs.readDirectory;
     public readonly errorMessage = 'Could not get AI response. ';
 
@@ -15,6 +15,12 @@ export class Utils{
         await this.writeFile(docFile, Buffer.from(codeExplanation));
     }
 
+        /**
+     * Recursive function to get all files in a directory that matches the supported language extension.
+     * @param {string} dir - The directory to get files from.
+     * @param {string[]} _supportedCodeLanguages - The file extensions to get.
+     * @param {string[]} _directoriesToIgnore - The directories to ignore. Important for avoiding explaining directories like node_modules. On explanation it get its value from the directoriesToIgnore config. On summarization has no value.
+     */
     async * getFiles(dir: string, _supportedCodeLanguages: string[] = ['md'], _directoriesToIgnore: string[] = ['']): AsyncGenerator<string> {
         const fileList = await this.readDirectory(vscode.Uri.file(dir));
         for (const [name, type] of fileList) {

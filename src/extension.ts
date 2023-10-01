@@ -8,7 +8,7 @@ async function generateDocs(): Promise<void> {
     const myConfig = new MyConfig();
     vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
     const utils = new Utils();
-    const ai = new AI(myConfig);
+    const ai = new AI(myConfig, utils);
     const filesToExplain = utils.getFiles(myConfig.rootPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
     await ai.explainProject(filesToExplain);
     await ai.summarizeDocs();

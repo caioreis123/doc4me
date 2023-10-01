@@ -1,15 +1,16 @@
 import { MyConfig } from "./myConfig";
 import * as vscode from 'vscode';
-import fetch from 'node-fetch';
+import fetch from 'axios';
 import { Utils } from "./utils";
 import * as path from 'path';
 
 export class AI{
     myConfig: MyConfig;
-    utils = new Utils();
+    utils: Utils;
 
-    constructor(myConfig: MyConfig){
+    constructor(myConfig: MyConfig, utils: Utils){
         this.myConfig = myConfig;
+        this.utils = utils;
     }
 
     async explainProject(filesToExplain: AsyncGenerator<string, any, unknown>): Promise<void>{
@@ -29,7 +30,7 @@ export class AI{
             await this.utils.createDoc(codeExplanation, docFile);
         }
     }
-
+    
     async askIA(prompt: string, config: MyConfig): Promise<string> {
         const model = config.model;
         const headers = {
@@ -41,9 +42,9 @@ export class AI{
         const explanation = await fetch("https://api.openai.com/v1/chat/completions", {
             method: 'POST',
             headers,
-            body: JSON.stringify(jsonData),
+            data: JSON.stringify(jsonData),
         }).then(async (res) => {
-            const jsonRes = await res.json() as { error?: {message: string}, choices: { message: { content: string } }[] };
+            const jsonRes = await res.data as { error?: {message: string}, choices: { message: { content: string } }[] };
             if (jsonRes.error) {
                 return `${this.utils.errorMessage} Response: ${jsonRes.error.message}`;
             }
@@ -82,10 +83,10 @@ export class AI{
 
     async summarizeDocs(): Promise<void> {
         let fileSummarizations: string = await this.getFileSummarizations();
-        await this.generateProjectSummary(fileSummarizations, this.myConfig);
+        await this.summarizeProject(fileSummarizations, this.myConfig);
     }
     
-    async generateProjectSummary(summarization: string, myConfig: MyConfig): Promise<void> {
+    async summarizeProject(summarization: string, myConfig: MyConfig): Promise<void> {
         const prompt = myConfig.explainProjectPrompt + summarization;
         const projectSummary = await this.askIA(prompt, myConfig);
         const summaryFilePath = path.join(myConfig.docsPath, this.utils.summaryFileName);
