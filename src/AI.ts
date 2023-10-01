@@ -13,14 +13,24 @@ export class AI{
         this.utils = utils;
     }
 
-    async explainProject(filesToExplain: AsyncGenerator<string, any, unknown>): Promise<void>{
+    docFile(file: string){
+        const docPath: string = file.replace(this.myConfig.rootPath, this.myConfig.docsPath).slice(0, -2) + "md";
+        const docFile: vscode.Uri = vscode.Uri.file(docPath);
+        return docFile;
+    }
+
+    async explainFile(file: string){
+        const codeExplanation: string = await this.explainCode(file, false, true, this.myConfig);
+        await this.utils.createDoc(codeExplanation, this.docFile(file));
+    }
+
+    async explainFiles(filesToExplain: AsyncGenerator<string, any, unknown>): Promise<void>{
         let docExists: boolean = false;
         let recreate: boolean = true;
         let askedTheUserForRecreation: boolean = false;
 
         for await (const file of filesToExplain) {
-            const docPath: string = file.replace(this.myConfig.rootPath, this.myConfig.docsPath).slice(0, -2) + "md";
-            const docFile: vscode.Uri = vscode.Uri.file(docPath);
+            const docFile = this.docFile(file);
             docExists = await vscode.workspace.fs.stat(docFile).then(() => true, () => false);
             if (docExists && !askedTheUserForRecreation) {
                 recreate = await vscode.window.showInformationMessage('Want to overwrite documentation generated previously?', 'Yes', 'No') === 'Yes';

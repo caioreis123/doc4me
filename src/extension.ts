@@ -5,13 +5,24 @@ import { Utils } from './utils';
 
 
 async function generateDocs(): Promise<void> {
+    const { utils, myConfig, ai } = getInstances();
+    const filesToExplain = utils.getFiles(myConfig.rootPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
+    await ai.explainFiles(filesToExplain);
+    await ai.summarizeDocs();
+}
+
+function getInstances() {
     const myConfig = new MyConfig();
     vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
     const utils = new Utils();
     const ai = new AI(myConfig, utils);
-    const filesToExplain = utils.getFiles(myConfig.rootPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
-    await ai.explainProject(filesToExplain);
-    await ai.summarizeDocs();
+    return { utils, myConfig, ai };
+}
+
+async function documentCurrentFile(): Promise<void> {
+    const { utils, myConfig, ai } = getInstances();
+    let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath || "";
+    await ai.explainFile(currentFile);
 }
 
 // This method is called when the extension is activated
@@ -20,16 +31,25 @@ export function activate(context: vscode.ExtensionContext) {
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with registerCommand
     // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('doc4me.doc4me', () => {
-        // The code you place here will be executed every time your command is executed
+    let docProject = vscode.commands.registerCommand('doc4me.doc4me', () => {
         generateDocs().then(() => {
-            vscode.window.showInformationMessage('doc4me completed!');
-            console.log('doc4me completed!');
+            vscode.window.showInformationMessage('Doc4me completed!');
+            console.log('Doc4me completed!');
         }).catch((err) => {
-            vscode.window.showErrorMessage('doc4me failed. ' + err);
+            vscode.window.showErrorMessage('Doc4me failed. ' + err);
         });
     });
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(docProject);
+
+    let docFile = vscode.commands.registerCommand('doc4me.file', () => {
+        documentCurrentFile().then(() => {
+            vscode.window.showInformationMessage('Doc4me completed!');
+            console.log('Doc4me completed!');
+        }).catch((err) => {
+            vscode.window.showErrorMessage('Doc4me failed. ' + err);
+        });
+    });
+    context.subscriptions.push(docFile);
 }
 
 // This method is called when your extension is deactivated

@@ -1,6 +1,6 @@
 {
-  "name": "doc4me",
-  "displayName": "doc4me",
+  "name": "Doc4me",
+  "displayName": "Doc4me",
   "description": "ai documentation generation tool",
   "version": "0.0.1",
   "engines": {
@@ -14,7 +14,7 @@
   "contributes": {
     "configuration": [
       {
-        "title": "doc4me",
+        "title": "Doc4me",
         "properties": {
           "directoriesToIgnore": {
             "type": "array",
@@ -32,7 +32,7 @@
               "js",
               "ts"
             ],
-            "markdownDescription": "The code file extensions supported by doc4me."
+            "markdownDescription": "The code file extensions supported by Doc4me."
           },
           "projectExplanationPrompt": {
             "type": "string",
@@ -68,7 +68,11 @@
     "commands": [
       {
         "command": "doc4me.doc4me",
-        "title": "doc 4 me"
+        "title": "Doc 4 me the whole project"
+      },
+      {
+        "command": "doc4me.file",
+        "title": "Doc 4 me current file"
       }
     ]
   },
