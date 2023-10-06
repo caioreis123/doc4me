@@ -2,9 +2,15 @@
   "name": "Doc4me",
   "displayName": "Doc4me",
   "description": "ai documentation generation tool",
+  "icon": "./neonRobot.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.81.0"
+  },
+  "publisher": "caioreis123",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/caioreis123/doc4me.git"
   },
   "categories": [
     "Other"
