@@ -3,6 +3,10 @@ import * as vscode from 'vscode';
 import fetch from 'axios';
 import { Utils } from "./utils";
 import * as path from 'path';
+import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
+import { loadSummarizationChain } from "langchain/chains";
+import { OpenAI } from "langchain/llms/openai";
+
 
 export class AI{
     myConfig: MyConfig;
@@ -40,14 +44,34 @@ export class AI{
             await this.utils.createDoc(codeExplanation, docFile);
         }
     }
+
+    async queryTextFragments(content: string): Promise<string> {
+        try{
+            const llm = new OpenAI({ temperature: 0 });
+
+            const textSplitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
+                chunkSize: 15000,
+                chunkOverlap: 0,
+              });
+              const docs = await textSplitter.createDocuments([content]);
+              console.log(docs.length);
+
+            const chain = loadSummarizationChain(llm, {type:"refine"});
+            const outputSummary = chain.run(docs);
+            return outputSummary;
+        }
+        catch(err){
+            return `${this.utils.errorMessage}The file was to big and Doc4Me failed on breaking it in chunks. Error: ${err}`;
+        }
+    }
     
-    async askIA(prompt: string, config: MyConfig): Promise<string> {
+    async askIA(prompt: string, content: string, config: MyConfig): Promise<string> {
         const model = config.model;
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + config.apiKey,
         };
-        const jsonData = { model, messages: [{ role: 'user', content: prompt }], temperature: 0 };
+        const jsonData = { model, messages: [{ role: 'user', content: prompt + content }], temperature: 0 };
         
         const explanation = await fetch("https://api.openai.com/v1/chat/completions", {
             method: 'POST',
@@ -59,8 +83,12 @@ export class AI{
                 return `${this.utils.errorMessage} Response: ${jsonRes.error.message}`;
             }
             return jsonRes.choices[0].message.content;
-        }).catch((err) => {
-            return `${this.utils.errorMessage} Error: ${err}`;
+        }).catch(async (err) => {
+            let fallbackResponse = `${this.utils.errorMessage} Error: ${err}`;
+            if (err?.response?.data?.error?.code === 'context_length_exceeded'){
+                fallbackResponse = await this.queryTextFragments(content);
+            }
+            return fallbackResponse;
         });
         return explanation;
     }
@@ -70,9 +98,8 @@ export class AI{
         let content: string = await this.utils.readFile(vscode.Uri.file(codePath)).then((res) => res.toString());
         if (!content) {return '';}
     
-        const prompt = myConfig.explainFilePrompt + content;
         console.log(`Explaining ${codePath}`);
-        const codeExplanation = await this.askIA(prompt, myConfig);
+        const codeExplanation = await this.askIA(myConfig.explainFilePrompt, content, myConfig);
         return codeExplanation;
     }
 
@@ -84,8 +111,7 @@ export class AI{
             const fileContent = await this.utils.readFile(vscode.Uri.file(file));
             const contentString = fileContent.toString();
             if (contentString.startsWith(this.utils.errorMessage)) { continue; }
-            const prompt: string = this.myConfig.summarizePrompt + contentString;
-            const summarizationSentence: string = await this.askIA(prompt, this.myConfig);
+            const summarizationSentence: string = await this.askIA(this.myConfig.summarizePrompt, contentString, this.myConfig);
             fileSummarizations += `${file}\n${summarizationSentence}\n\n`;
         }
         return fileSummarizations;
@@ -97,8 +123,7 @@ export class AI{
     }
     
     async summarizeProject(summarization: string, myConfig: MyConfig): Promise<void> {
-        const prompt = myConfig.explainProjectPrompt + summarization;
-        const projectSummary = await this.askIA(prompt, myConfig);
+        const projectSummary = await this.askIA(myConfig.explainProjectPrompt, summarization, myConfig);
         const summaryFilePath = path.join(myConfig.docsPath, this.utils.summaryFileName);
         const summaryFile = vscode.Uri.file(summaryFilePath);
         this.utils.writeFile(summaryFile, Buffer.from(projectSummary));
