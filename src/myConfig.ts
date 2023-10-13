@@ -1,6 +1,28 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+export type SupportedLanguages = "cpp" | "go" | "java" | "js" | "php" | "proto" | "python" | "rst" | "ruby" | "rust" | "scala" | "swift" | "markdown" | "latex" | "html" | "sol";
+
+export const fileExtensionToLanguage: { [extension: string]: SupportedLanguages } = {
+    "cpp": "cpp",
+    "go": "go",
+    "java": "java",
+    "js": "js",
+    "php": "php",
+    "proto": "proto",
+    "py": "python",
+    "rst": "rst",
+    "rb": "ruby",
+    "rs": "rust",
+    "scala": "scala",
+    "swift": "swift",
+    "md": "markdown",
+    "tex": "latex",
+    "html": "html",
+    "sol": "sol"
+};
+
+
 export class MyConfig {
     private vsCodeConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
     private defaultRootPath: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';

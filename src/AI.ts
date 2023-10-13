@@ -1,4 +1,4 @@
-import { MyConfig } from "./myConfig";
+import { MyConfig, SupportedLanguages, fileExtensionToLanguage } from "./myConfig";
 import * as vscode from 'vscode';
 import fetch from 'axios';
 import { Utils } from "./utils";
@@ -45,17 +45,25 @@ export class AI{
         }
     }
 
-    async queryTextFragments(content: string): Promise<string> {
+    async queryTextFragments(content: string, filePath: string): Promise<string> {
         try{
+            const fileExtension: string = filePath.split('.').pop() || '';
+            const fileLanguage: SupportedLanguages = fileExtensionToLanguage[fileExtension];
+            process.env.OPENAI_API_KEY = this.myConfig.apiKey;
             const llm = new OpenAI({ temperature: 0 });
-
-            const textSplitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
+            const splitConfig = {
                 chunkSize: 15000,
                 chunkOverlap: 0,
-              });
-              const docs = await textSplitter.createDocuments([content]);
-              console.log(docs.length);
-
+            };
+            let textSplitter;
+            if (!!fileLanguage){
+                textSplitter = RecursiveCharacterTextSplitter.fromLanguage(fileLanguage, splitConfig);
+            }
+            else{
+                textSplitter = new RecursiveCharacterTextSplitter(splitConfig);
+            }
+            const docs = await textSplitter.createDocuments([content]);
+            console.log(docs.length);
             const chain = loadSummarizationChain(llm, {type:"refine"});
             const outputSummary = chain.run(docs);
             return outputSummary;
@@ -65,7 +73,7 @@ export class AI{
         }
     }
     
-    async askIA(prompt: string, content: string, config: MyConfig): Promise<string> {
+    async askIA(prompt: string, content: string, config: MyConfig, filePath: string): Promise<string> {
         const model = config.model;
         const headers = {
             'Content-Type': 'application/json',
@@ -86,7 +94,7 @@ export class AI{
         }).catch(async (err) => {
             let fallbackResponse = `${this.utils.errorMessage} Error: ${err}`;
             if (err?.response?.data?.error?.code === 'context_length_exceeded'){
-                fallbackResponse = await this.queryTextFragments(content);
+                fallbackResponse = await this.queryTextFragments(content, filePath);
             }
             return fallbackResponse;
         });
@@ -99,7 +107,7 @@ export class AI{
         if (!content) {return '';}
     
         console.log(`Explaining ${codePath}`);
-        const codeExplanation = await this.askIA(myConfig.explainFilePrompt, content, myConfig);
+        const codeExplanation = await this.askIA(myConfig.explainFilePrompt, content, myConfig, codePath);
         return codeExplanation;
     }
 
@@ -111,7 +119,7 @@ export class AI{
             const fileContent = await this.utils.readFile(vscode.Uri.file(file));
             const contentString = fileContent.toString();
             if (contentString.startsWith(this.utils.errorMessage)) { continue; }
-            const summarizationSentence: string = await this.askIA(this.myConfig.summarizePrompt, contentString, this.myConfig);
+            const summarizationSentence: string = await this.askIA(this.myConfig.summarizePrompt, contentString, this.myConfig, file);
             fileSummarizations += `${file}\n${summarizationSentence}\n\n`;
         }
         return fileSummarizations;
@@ -123,7 +131,7 @@ export class AI{
     }
     
     async summarizeProject(summarization: string, myConfig: MyConfig): Promise<void> {
-        const projectSummary = await this.askIA(myConfig.explainProjectPrompt, summarization, myConfig);
+        const projectSummary = await this.askIA(myConfig.explainProjectPrompt, summarization, myConfig, '.md');
         const summaryFilePath = path.join(myConfig.docsPath, this.utils.summaryFileName);
         const summaryFile = vscode.Uri.file(summaryFilePath);
         this.utils.writeFile(summaryFile, Buffer.from(projectSummary));
