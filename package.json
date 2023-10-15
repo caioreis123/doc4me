@@ -34,21 +34,14 @@
           "supportedCodeExtensions": {
             "type": "array",
             "default": [
-              "py",
-              "js",
-              "ts"
+              "cpp", "go", "java", "js", "php", "proto", "py", "rst", "rb", "rs", "scala", "swift", "md", "tex", "html", "sol"
             ],
-            "markdownDescription": "The code file extensions supported by Doc4me."
+            "markdownDescription": "The file extensions supported by Doc4me."
           },
           "projectExplanationPrompt": {
             "type": "string",
             "default": "Explain what this code project do, given the following explanations of each file: \n",
-            "markdownDescription": "The prompt used to explain the project."
-          },
-          "summarizationPrompt": {
-            "type": "string",
-            "default": "Summarize the following code explanation in at most one paragraph:\n",
-            "markdownDescription": "The prompt used to summarize a code file."
+            "markdownDescription": "The prompt used to explain the whole project based on the explanation generated of each file."
           },
           "fileExplanationPrompt": {
             "type": "string",
@@ -64,16 +57,20 @@
     ],
     "commands": [
       {
-        "command": "doc4me.doc4me",
+        "command": "doc4me.project",
         "title": "Doc 4 me the whole project"
       },
       {
         "command": "doc4me.file",
-        "title": "Doc 4 me current file"
+        "title": "Doc 4 me the current file"
       },
       {
-        "command": "doc4me.test",
-        "title": "Test doc4me"
+        "command": "doc4me.directory",
+        "title": "Doc 4 me the current directory"
+      },
+      {
+        "command": "doc4me.calculate",
+        "title": "Calculate tokens per file - doc4me"
       }
     ]
   },

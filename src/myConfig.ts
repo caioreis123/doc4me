@@ -27,6 +27,8 @@ export class MyConfig {
     private vsCodeConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
     private defaultRootPath: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
     private defaultDocsPath: string = path.join(this.defaultRootPath, 'docs');
+    public readonly summarizePrompt: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
+    
     public readonly rootPath: string = this.vsCodeConfig.get('rootPath', this.defaultRootPath);
     public readonly docsPath: string = this.vsCodeConfig.get('docsPath', this.defaultDocsPath);
     public readonly model: string = this.vsCodeConfig.get('model', 'gpt-3.5-turbo');
@@ -35,7 +37,6 @@ export class MyConfig {
     public apiKey: string = this.vsCodeConfig.get('openAiApiKey', '');
     public readonly supportedFileExtension: string[] = this.vsCodeConfig.get('supportedCodeExtensions', ["py", "js", "ts"]);
     public readonly directoriesToIgnore: string[] = this.vsCodeConfig.get('directoriesToIgnore', ["docs", "node_modules", "dist"]);
-    public readonly summarizePrompt: string = this.vsCodeConfig.get('summarizationPrompt', 'Summarize the following code explanation in at most one paragraph:\n');
 
     constructor(){
         const docsDir = vscode.Uri.file(this.docsPath);

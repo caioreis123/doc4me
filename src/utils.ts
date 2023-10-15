@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 export class Utils{
-    public readonly summaryFileName = 'project_summary.md';
+    public readonly summaryFileName = 'projectSummary.md';
     public readFile = vscode.workspace.fs.readFile;
     public writeFile = vscode.workspace.fs.writeFile;
     public readonly readDirectory = vscode.workspace.fs.readDirectory;

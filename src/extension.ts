@@ -2,21 +2,38 @@ import * as vscode from 'vscode';
 import { MyConfig } from './myConfig';
 import { AI } from './ai';
 import { Utils } from './utils';
+import * as path from 'path';
 
 const commands: { [key: string]: () => Promise<void> } = {
-    'project': generateDocs,
+    'project': documentProject,
     'file': documentCurrentFile,
-    'test': test
+    'directory': documentCurrentDirectory,
+    'calculate': calculate
 };
 
-async function test(){
+async function calculate(){
     const { utils, myConfig, ai } = getInstances();
-    const cwd = process.cwd();
-    console.log('test');
-    await ai.explainFile('/Users/caio/ifba/tcc/tcc/all.md');
+    const files = utils.getFiles(myConfig.rootPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
+    await ai.calculateTokens(files);
 }
 
-async function generateDocs(): Promise<void> {
+async function documentCurrentDirectory(){
+    const { utils, myConfig, ai } = getInstances();
+    const currentFile = getCurrentFile();
+    const directoryPath = path.dirname(currentFile);
+    const files = utils.getFiles(directoryPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
+    await ai.explainFiles(files);
+}
+
+function getCurrentFile() {
+    let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
+    if (!currentFile) {
+        throw new Error('No file is currently open');
+    }
+    return currentFile;
+}
+
+async function documentProject(): Promise<void> {
     const { utils, myConfig, ai } = getInstances();
     const filesToExplain = utils.getFiles(myConfig.rootPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
     await ai.explainFiles(filesToExplain);
@@ -33,21 +50,12 @@ function getInstances() {
 
 async function documentCurrentFile(): Promise<void> {
     const { utils, myConfig, ai } = getInstances();
-    let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
-    if (!currentFile) {
-        throw new Error('No file is currently open');
-    }
+    const currentFile = getCurrentFile();
     await ai.explainFile(currentFile);
 }
 
-// This method is called when the extension is activated
-// The extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
     registerCommands(context);
-
 }
 
 function registerCommands(context: vscode.ExtensionContext) {
@@ -58,7 +66,9 @@ function registerCommands(context: vscode.ExtensionContext) {
                             vscode.window.showInformationMessage('Doc4me completed!');
                             console.log('Doc4me completed!');
                         }).catch((err) => {
-                            vscode.window.showErrorMessage('Doc4me failed. ' + err);
+                            let message = 'Doc4me failed. ' + err;
+                            console.error(message);
+                            vscode.window.showErrorMessage(message);
                         });
                     });
             context.subscriptions.push(cmd);
@@ -66,37 +76,4 @@ function registerCommands(context: vscode.ExtensionContext) {
     }
 }
 
-// function registerTest(context: vscode.ExtensionContext) {
-//     let test = vscode.commands.registerCommand('doc4me.test', () => {
-//         vscode.window.showInformationMessage('Doc4me test!');
-        
-//     });
-//     context.subscriptions.push(test);
-// }
-
-// function registerExplainFile(context: vscode.ExtensionContext) {
-//     let docFile = vscode.commands.registerCommand('doc4me.file', () => {
-//         documentCurrentFile().then(() => {
-//             vscode.window.showInformationMessage('Doc4me completed!');
-//             console.log('Doc4me completed!');
-//         }).catch((err) => {
-//             vscode.window.showErrorMessage('Doc4me failed. ' + err);
-//         });
-//     });
-//     context.subscriptions.push(docFile);
-// }
-
-// function registerExplainProject(context: vscode.ExtensionContext) {
-//     let docProject = vscode.commands.registerCommand('doc4me.doc4me', () => {
-//         generateDocs().then(() => {
-//             vscode.window.showInformationMessage('Doc4me completed!');
-//             console.log('Doc4me completed!');
-//         }).catch((err) => {
-//             vscode.window.showErrorMessage('Doc4me failed. ' + err);
-//         });
-//     });
-//     context.subscriptions.push(docProject);
-// }
-
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {} // This method is called when your extension is deactivated
