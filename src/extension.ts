@@ -8,8 +8,17 @@ const commands: { [key: string]: () => Promise<void> } = {
     'project': documentProject,
     'file': documentCurrentFile,
     'directory': documentCurrentDirectory,
-    'calculate': calculate
+    'calculate': calculate,
+    'ask': qaFile,
 };
+
+async function qaFile(){
+    const { utils, myConfig, ai } = getInstances();
+    const question = await vscode.window.showInputBox({prompt: 'What do you want to ask?', ignoreFocusOut: true});
+    if (question){
+        await ai.askFile(getCurrentFile(), question);
+    }
+}
 
 async function calculate(){
     const { utils, myConfig, ai } = getInstances();
@@ -19,8 +28,7 @@ async function calculate(){
 
 async function documentCurrentDirectory(){
     const { utils, myConfig, ai } = getInstances();
-    const currentFile = getCurrentFile();
-    const directoryPath = path.dirname(currentFile);
+    const directoryPath = path.dirname(getCurrentFile());
     const files = utils.getFiles(directoryPath, myConfig.supportedFileExtension, myConfig.directoriesToIgnore);
     await ai.explainFiles(files);
 }
@@ -43,7 +51,7 @@ async function documentProject(): Promise<void> {
 function getInstances() {
     vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
     const myConfig = new MyConfig();
-    const utils = new Utils();
+    const utils = new Utils(myConfig);
     const ai = new AI(myConfig, utils);
     return { utils, myConfig, ai };
 }

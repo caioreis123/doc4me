@@ -1,18 +1,33 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { MyConfig } from './myConfig';
 
 export class Utils{
+    myConfig: MyConfig;
+
+    constructor (config: MyConfig) {
+        this.myConfig = config;
+    }
+
     public readonly summaryFileName = 'projectSummary.md';
     public readFile = vscode.workspace.fs.readFile;
-    public writeFile = vscode.workspace.fs.writeFile;
     public readonly readDirectory = vscode.workspace.fs.readDirectory;
     public readonly errorMessage = 'Could not get AI response. ';
+
+    public async writeFile(fileName: string, content: string): Promise<void>{
+        const filePath = path.join(this.myConfig.docsPath, fileName);
+        vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(content));
+    };
+
+    public getContent(filePath: string): string | PromiseLike<string> {
+        return this.readFile(vscode.Uri.file(filePath)).then((res) => res.toString());
+    }
 
     async createDoc(codeExplanation: string, docFile: vscode.Uri): Promise<void> {
         if (!codeExplanation) {
             return;
         }
-        await this.writeFile(docFile, Buffer.from(codeExplanation));
+        await vscode.workspace.fs.writeFile(docFile, Buffer.from(codeExplanation));
     }
 
         /**

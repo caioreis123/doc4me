@@ -1,7 +1,6 @@
 import { MyConfig, SupportedLanguages, fileExtensionToLanguage } from "./myConfig";
 import * as vscode from 'vscode';
 import { Utils } from "./utils";
-import * as path from 'path';
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
 import { loadSummarizationChain } from "langchain/chains";
 import { OpenAI } from "langchain/llms/openai";
@@ -20,15 +19,14 @@ export class AI{
         this.llm = new OpenAI({modelName:myConfig.model, temperature: 0, openAIApiKey: myConfig.apiKey });
     }
 
-    docFile(file: string){
+    getDocFile(file: string): vscode.Uri{
         const docPath: string = file.replace(this.myConfig.rootPath, this.myConfig.docsPath).slice(0, -2) + "md";
-        const docFile: vscode.Uri = vscode.Uri.file(docPath);
-        return docFile;
+        return vscode.Uri.file(docPath);
     }
 
-    async explainFile(file: string){
+    async explainFile(file: string): Promise<void>{
         const codeExplanation: string = await this.explainCode(file, false, true, this.myConfig);
-        await this.utils.createDoc(codeExplanation, this.docFile(file));
+        await this.utils.createDoc(codeExplanation, this.getDocFile(file));
     }
 
     async explainFiles(filesToExplain: AsyncGenerator<string, any, unknown>): Promise<void>{
@@ -37,7 +35,7 @@ export class AI{
         let askedTheUserForRecreation: boolean = false;
 
         for await (const file of filesToExplain) {
-            const docFile = this.docFile(file);
+            const docFile = this.getDocFile(file);
             docExists = await vscode.workspace.fs.stat(docFile).then(() => true, () => false);
             if (docExists && !askedTheUserForRecreation) {
                 recreate = await vscode.window.showInformationMessage('Want to overwrite documentation generated previously?', 'Yes', 'No') === 'Yes';
@@ -51,10 +49,8 @@ export class AI{
     async calculateTokens(filesToCalculate: AsyncGenerator<string, any, unknown>): Promise<void>{
         let csvContent = 'Tokens,File\n';
         let tokensTotal = 0;
-        const csvFilePath = path.join(this.myConfig.docsPath, 'tokens.csv');
-        const csvFile = vscode.Uri.file(csvFilePath);
         for await (const file of filesToCalculate) {
-            let content: string = await this.utils.readFile(vscode.Uri.file(file)).then((res) => res.toString());
+            let content: string = await this.utils.getContent(file);
             if (!content) {continue;}
             const tokensAmount = await this.llm.getNumTokens(content);
             console.log(`${tokensAmount} tokens for ${file}`);
@@ -63,7 +59,7 @@ export class AI{
             tokensTotal += tokensAmount;
         }
         csvContent += `${tokensTotal},All files\n`;
-        this.utils.writeFile(csvFile, Buffer.from(csvContent));
+        this.utils.writeFile('tokens.csv', csvContent);
     }
 
     async queryTextFragments(content: string, filePath: string): Promise<string> {
@@ -127,7 +123,7 @@ export class AI{
 
     async explainCode(codePath: string, docExists:boolean, recreate:boolean, myConfig: MyConfig): Promise<string> {
         if(docExists && !recreate){return '';}
-        let content: string = await this.utils.readFile(vscode.Uri.file(codePath)).then((res) => res.toString());
+        let content: string = await this.utils.getContent(codePath);
         if (!content) {return '';}
     
         console.log(`Explaining ${codePath}`);
@@ -164,8 +160,16 @@ export class AI{
      */ 
     async summarizeProject(summarization: string, myConfig: MyConfig): Promise<void> {
         const projectSummary = await this.askIA(myConfig.explainProjectPrompt, summarization, '.md');
-        const summaryFilePath = path.join(myConfig.docsPath, this.utils.summaryFileName);
-        const summaryFile = vscode.Uri.file(summaryFilePath);
-        this.utils.writeFile(summaryFile, Buffer.from(projectSummary));
+        this.utils.writeFile(this.utils.summaryFileName, projectSummary);
+    }
+
+    async askFile(file: string, question: string){
+        const content: string = await this.utils.getContent(file);
+        if (!content) {return;}
+        const answer = await this.askIA(question, content, file);
+        vscode.window.showInformationMessage(answer);
+        const answerWithLineBreaks = answer.split('. ').join('.\n');
+        this.utils.writeFile('.qa.txt', answerWithLineBreaks);
+        vscode.window.showInformationMessage('The full answer is in the file .qa.txt');
     }
 }

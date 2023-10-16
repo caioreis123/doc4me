@@ -58,19 +58,23 @@
     "commands": [
       {
         "command": "doc4me.project",
-        "title": "Doc 4 me the whole project"
+        "title": "Doc 4 me the whole project - doc4me"
       },
       {
         "command": "doc4me.file",
-        "title": "Doc 4 me the current file"
+        "title": "Doc 4 me the current file - doc4me"
       },
       {
         "command": "doc4me.directory",
-        "title": "Doc 4 me the current directory"
+        "title": "Doc 4 me the current directory - doc4me"
       },
       {
         "command": "doc4me.calculate",
         "title": "Calculate tokens per file - doc4me"
+      },
+      {
+        "command": "doc4me.ask",
+        "title": "Ask a question to the current file - doc4me"
       }
     ]
   },
