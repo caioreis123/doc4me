@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { MyConfig } from '../../myConfig';
-import { AI } from '../../ai';
+import { AI } from '../../ai/ai';
 import { Utils } from '../../utils';
 let sinon = require('sinon');
 
@@ -10,11 +10,15 @@ let sinon = require('sinon');
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 	const myConfig = new MyConfig();
-	const utils = new Utils();
-    const ai = new AI(myConfig, utils);
+	const utils = new Utils(myConfig);
+    const ai = new AI(utils);
+	const filePath = 'some file path';
+
 	
 	const askAIStub = sinon.stub(ai, 'askIA');
-	askAIStub.returnsArg(0);
+	askAIStub.callsFake((arg1:string, arg2:string) => {
+		return arg1 + arg2;
+	  });
 	ai.askIA = askAIStub;
 
 	const aiUtilsReadFileStub = sinon.stub(ai.utils, 'readFile');
@@ -26,11 +30,11 @@ suite('Extension Test Suite', () => {
 	}
 	
 	test('explainCode should return empty string', async () => {
-		let codeExplanation: string = await ai.explainCode('some file path', true, false, myConfig);
+		let codeExplanation: string = await ai.explainer.explainCode(filePath, true, false, myConfig);
 		assert.strictEqual(codeExplanation, '');
 
 		setReadFileReturnValue('');
-		codeExplanation = await ai.explainCode('some file path', false, true, myConfig);
+		codeExplanation = await ai.explainer.explainCode(filePath, false, true, myConfig);
 		assert.strictEqual(codeExplanation, '');
 	});
 
@@ -38,11 +42,12 @@ suite('Extension Test Suite', () => {
 		const testContent = 'Test content';
 		setReadFileReturnValue(testContent);
 
-		await ai.explainCode('some file path', false, true, myConfig);
-		assert(askAIStub.calledWith(myConfig.explainFilePrompt + testContent, myConfig));
+		await ai.explainer.explainCode(filePath, false, true, myConfig);
+		assert(askAIStub.calledWith(myConfig.explainFilePrompt, testContent, filePath));
 	});
 
 	test('getFileSummarizations', async () => {
+		
 		const getFilesStub = sinon.stub(ai.utils, 'getFiles');
 		getFilesStub.withArgs(ai.myConfig.docsPath).returns([
 			ai.utils.summaryFileName,
@@ -53,7 +58,7 @@ suite('Extension Test Suite', () => {
 		aiUtilsReadFileStub.withArgs(vscode.Uri.file('/path/to/file2.txt')).returns(Promise.resolve(Buffer.from('file2 content')));
 		aiUtilsReadFileStub.withArgs(vscode.Uri.file('/path/to/file3.txt')).returns(Promise.resolve(Buffer.from(ai.utils.errorMessage)));
 		aiUtilsReadFileStub.withArgs(vscode.Uri.file('/path/to/file4.txt')).returns(Promise.resolve(Buffer.from('file4 content')));
-		const fileSummarizations: string = await ai.getFileSummarizations();
+		const fileSummarizations: string = await ai.summarizer.getFileSummarizations();
 		const expectedFileSummarizations = "/path/to/file2.txt\nSummarize the following code explanation in at most one paragraph:\nfile2 content\n\n/path/to/file4.txt\nSummarize the following code explanation in at most one paragraph:\nfile4 content\n\n";
 		assert.strictEqual(fileSummarizations, expectedFileSummarizations);
 		getFilesStub.restore();

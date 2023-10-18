@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { PromptTemplate } from 'langchain/prompts';
 
 export type SupportedLanguages = "cpp" | "go" | "java" | "js" | "php" | "proto" | "python" | "rst" | "ruby" | "rust" | "scala" | "swift" | "markdown" | "latex" | "html" | "sol";
 
@@ -37,6 +38,25 @@ export class MyConfig {
     public apiKey: string = this.vsCodeConfig.get('openAiApiKey', '');
     public readonly supportedFileExtension: string[] = this.vsCodeConfig.get('supportedCodeExtensions', ["py", "js", "ts"]);
     public readonly directoriesToIgnore: string[] = this.vsCodeConfig.get('directoriesToIgnore', ["docs", "node_modules", "dist"]);
+
+    private refinePromptTemplateString = `
+        Your job is to produce a final summary
+        We have provided an existing summary up to a certain point: "{existing_answer}"
+        We have the opportunity to refine the existing summary
+        (only if needed) with some more context below.
+        ------------
+        "{text}"
+        ------------
+
+        If the context isn't useful, return the original summary.
+        Given the new context, refine the original summary in the same language as the following prompt between ###:\n
+        ###${this.explainFilePrompt}###
+        `; // this prompting template is necessary to allow model responses in different languages
+
+    public refinePrompt = new PromptTemplate({
+    inputVariables: ["existing_answer", "text"],
+    template: this.refinePromptTemplateString,
+    });
 
     constructor(){
         const docsDir = vscode.Uri.file(this.docsPath);

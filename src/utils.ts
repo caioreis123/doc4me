@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { MyConfig } from './myConfig';
+import {MyConfig} from './myConfig';
+import {AI} from "./ai/ai";
 
 export class Utils{
     myConfig: MyConfig;
@@ -54,4 +55,18 @@ export class Utils{
             }
         }
     }
+
+    public getCurrentFile() {
+        let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
+        if (!currentFile) {
+            throw new Error('No file is currently open');
+        }
+        return currentFile;
+    }
+
+    public getDocFile(file: string): vscode.Uri{
+        const docPath: string = file.replace(this.myConfig.rootPath, this.myConfig.docsPath).slice(0, -2) + "md";
+        return vscode.Uri.file(docPath);
+    }
+
 }
