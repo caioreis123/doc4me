@@ -37,19 +37,32 @@ export class Utils{
     async * getFiles(dir: string, _supportedCodeLanguages: string[] = ['md'], _directoriesToIgnore: string[] = ['']): AsyncGenerator<string> {
         const fileList = await this.readDirectory(vscode.Uri.file(dir));
         for (const [name, type] of fileList) {
+            // skip hidden files/directories
+            // skip ignored directories
+            const hiddenFile = name.startsWith('.');
+            const isDirectory = type === vscode.FileType.Directory;
+            const isIgnoredDirectory = isDirectory && _directoriesToIgnore.includes(name);
             const filePath = path.join(dir, name);
-            if (name.startsWith('.') || _directoriesToIgnore.includes(name)) {
-                continue;
+            if (filePath==='/Users/caio/ifba/tcc/tcc/db/html') {
+                console.log('a58e725f-7fce-4cc4-be9e-ac3204041847');    
             }
-            if (type === vscode.FileType.Directory) {
+            
+            console.log(`reading ${filePath}`);
+            if (hiddenFile || isIgnoredDirectory) {continue;}
+
+            // process directory
+            if (isDirectory) {
                 yield* this.getFiles(filePath, _supportedCodeLanguages, _directoriesToIgnore);
-            } else {
-                const fileExtension: string = name.split('.').pop() || '';
-                const isSupportedCodeLanguage = _supportedCodeLanguages.includes(fileExtension);
-                if (isSupportedCodeLanguage) {
-                    yield filePath;
-                }
-            }
+                continue; // without this continue the code below would be executed for directories
+            } 
+
+            // skip not supported file
+            const fileExtension: string = name.split('.').pop() || '';
+            const isSupportedCodeLanguage = _supportedCodeLanguages.includes(fileExtension);
+            if (!isSupportedCodeLanguage) {continue;}
+            
+            // return file
+            yield filePath;
         }
     }
 
