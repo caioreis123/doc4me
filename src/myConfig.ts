@@ -25,7 +25,7 @@ export const fileExtensionToLanguage: { [extension: string]: SupportedLanguages 
 
 
 export class MyConfig {
-    private vsCodeConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
+    public vsCodeConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
     private defaultRootPath: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
     private defaultDocsPath: string = path.join(this.defaultRootPath, 'docs');
     public readonly summarizePrompt: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
@@ -61,13 +61,5 @@ export class MyConfig {
     constructor(){
         const docsDir = vscode.Uri.file(this.docsPath);
         vscode.workspace.fs.createDirectory(docsDir);
-        if (!this.apiKey){
-                vscode.window.showInputBox({prompt: 'Please enter your OpenAI API key', ignoreFocusOut: true}).then((apiKey) => {
-                    if (apiKey) {
-                        this.apiKey = apiKey;
-                        this.vsCodeConfig.update('openAiApiKey', apiKey, true);
-                    }
-                }
-            );};
     }
 }

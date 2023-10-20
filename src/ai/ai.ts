@@ -6,24 +6,40 @@ import { loadSummarizationChain } from "langchain/chains";
 import { OpenAI } from "langchain/llms/openai";
 import { Explainer } from "./explainer";
 import { Summarizer } from "./summarizer";
+import { throws } from "assert";
 
 
 export class AI{
     myConfig: MyConfig;
     utils: Utils;
-    llm: OpenAI;
+    // llm: OpenAI;
     explainer: Explainer;
     summarizer: Summarizer;
 
-    constructor(utils: Utils){
+    getLLM(): any{
+        if (!this.myConfig.apiKey){
+            vscode.window.showInputBox({prompt: 'Please enter your OpenAI API key', ignoreFocusOut: true})
+            .then((apiKey) => {
+                if (apiKey) {
+                    this.myConfig.apiKey = apiKey;
+                    this.myConfig.vsCodeConfig.update('openAiApiKey', apiKey, true);
+                    const llm = new OpenAI({modelName:this.utils.myConfig.model, temperature: 0, openAIApiKey: apiKey });
+                    return llm;
+                }
+            }
+        )
+        ;};
+    }
+
+    constructor(){
+        const utils = new Utils();
         this.myConfig = utils.myConfig;
         this.utils = utils;
-        this.llm = new OpenAI({modelName:utils.myConfig.model, temperature: 0, openAIApiKey: utils.myConfig.apiKey });
         this.explainer = new Explainer(this);
         this.summarizer = new Summarizer(this);
     }
 
-    async queryTextFragments(content: string, filePath: string): Promise<string> {
+    async queryTextFragments(llm: OpenAI, content: string, filePath: string): Promise<string> {
         console.log(`Splitting big file in chunks: ${filePath}`);
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
@@ -42,31 +58,34 @@ export class AI{
             const docs = await textSplitter.createDocuments([content]);
             console.log(docs.length+ " chunks created");
 
-            const chain = loadSummarizationChain(this.llm, {type:"refine", refinePrompt: this.myConfig.refinePrompt});
+            const chain = loadSummarizationChain(llm, {type:"refine", refinePrompt: this.myConfig.refinePrompt});
             return chain.run(docs);
         }
         catch(err){
-            return `${this.utils.errorMessage}The file was to big and Doc4Me failed on breaking it in chunks due to the following error: ${err}`;
+            return `${this.myConfig.errorMessage}The file was to big and Doc4Me failed on breaking it in chunks due to the following error: ${err}`;
         }
     }
     
-    async askIA(prompt: string, content: string, filePath: string): Promise<string> {
+    async askIA(llm: OpenAI, prompt: string, content: string, filePath: string): Promise<string> {
+
         try{
-            return await this.llm.predict(prompt + content);
+            return await llm.predict(prompt + content);
         }
         catch(error: any){
             if(error.code === 'context_length_exceeded'){
-                return await this.queryTextFragments(content, filePath);
+                return await this.queryTextFragments(llm, content, filePath);
             }
             throw error;
         }
     }
 
     async askFile(file: string, question: string){
+        const llm = this.getLLM();
+
         const content: string = await this.utils.getContent(file);
         if (!content) {return;}
         
-        const answer = await this.askIA(question, content, file);
+        const answer = await this.askIA(llm, question, content, file);
         
         vscode.window.showInformationMessage(answer);
         const answerWithLineBreaks = answer.split('. ').join('.\n');
@@ -75,12 +94,14 @@ export class AI{
     }
 
     async calculateTokens(filesToCalculate: AsyncGenerator<string, any, unknown>): Promise<void>{
+        const llm = this.getLLM();
+
         let csvContent = 'Tokens,File\n';
         let tokensTotal = 0;
         for await (const file of filesToCalculate) {
             let content: string = await this.utils.getContent(file);
             if (!content) {continue;}
-            const tokensAmount = await this.llm.getNumTokens(content);
+            const tokensAmount = await llm.getNumTokens(content);
             console.log(`${tokensAmount} tokens for ${file}`);
             const csvLine = `${tokensAmount},${file}\n`;
             csvContent += csvLine;

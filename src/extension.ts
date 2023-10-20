@@ -1,5 +1,15 @@
 import * as vscode from 'vscode';
-import commands from "./commands";
+import { Doc4Me } from './commands';
+
+const doc4me = new Doc4Me();
+
+const commands: { [key: string]: () => Promise<void> } = {
+    'project': doc4me.documentProject.bind(doc4me),
+    'file': doc4me.documentCurrentFile.bind(doc4me),
+    'directory': doc4me.documentCurrentDirectory.bind(doc4me),
+    'calculate': doc4me.calculate.bind(doc4me),
+    'ask': doc4me.askFile.bind(doc4me),
+};
 
 function getCompletionMessage(): string {
     const robot = String.fromCodePoint(0x1F916);
@@ -30,6 +40,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
+    console.log('Doc4me is now active!');
     registerCommands(context);
 }
 

@@ -23,20 +23,12 @@
         "title": "Doc4me",
         "properties": {
           "directoriesToIgnore": {
-            "type": "array",
-            "default": [
-              "docs",
-              "node_modules",
-              "dist"
-            ],
-            "markdownDescription": "Files inside these directories will not be analyzed."
+            "type": "string",
+            "markdownDescription": "Files inside these directories will not be analyzed. Each directory is separated by comma."
           },
           "supportedCodeExtensions": {
-            "type": "array",
-            "default": [
-              "cpp", "go", "java", "js", "php", "proto", "py", "rst", "rb", "rs", "scala", "swift", "md", "tex", "html", "sol"
-            ],
-            "markdownDescription": "The file extensions supported by Doc4me."
+            "type": "string",
+            "markdownDescription": "The file extensions supported by Doc4me separated by comma."
           },
           "projectExplanationPrompt": {
             "type": "string",

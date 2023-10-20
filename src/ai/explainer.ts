@@ -30,6 +30,7 @@ export class Explainer {
         let askedTheUserForRecreation: boolean = false;
 
         for await (const file of filesToExplain) {
+            console.log(`iterating: ${file}`);
             const docFile = this.ai.utils.getDocFile(file);
             docExists = await vscode.workspace.fs.stat(docFile).then(() => true, () => false);
             if (docExists && !askedTheUserForRecreation) {

@@ -1,19 +1,15 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import {MyConfig} from './myConfig';
-import {AI} from "./ai/ai";
 
 export class Utils{
     myConfig: MyConfig;
 
-    constructor (config: MyConfig) {
-        this.myConfig = config;
+    constructor () {
+        this.myConfig = new MyConfig();
     }
-
-    public readonly summaryFileName = 'projectSummary.md';
     public readFile = vscode.workspace.fs.readFile;
     public readonly readDirectory = vscode.workspace.fs.readDirectory;
-    public readonly errorMessage = 'Could not get AI response. ';
 
     public async writeFile(fileName: string, content: string): Promise<void>{
         const filePath = path.join(this.myConfig.docsPath, fileName);
@@ -21,6 +17,7 @@ export class Utils{
     };
 
     public getContent(filePath: string): string | PromiseLike<string> {
+        console.log(`Reading ${filePath}`);
         return this.readFile(vscode.Uri.file(filePath)).then((res) => res.toString());
     }
 
@@ -40,19 +37,22 @@ export class Utils{
     async * getFiles(dir: string, _supportedCodeLanguages: string[] = ['md'], _directoriesToIgnore: string[] = ['']): AsyncGenerator<string> {
         const fileList = await this.readDirectory(vscode.Uri.file(dir));
         for (const [name, type] of fileList) {
+            // skips directories
+            if (name.startsWith('.') || _directoriesToIgnore.includes(name)) {continue;}
+
+            // process directories
             const filePath = path.join(dir, name);
-            if (name.startsWith('.') || _directoriesToIgnore.includes(name)) {
-                continue;
-            }
             if (type === vscode.FileType.Directory) {
-                yield* this.getFiles(filePath, _supportedCodeLanguages, _directoriesToIgnore);
-            } else {
-                const fileExtension: string = name.split('.').pop() || '';
-                const isSupportedCodeLanguage = _supportedCodeLanguages.includes(fileExtension);
-                if (isSupportedCodeLanguage) {
-                    yield filePath;
-                }
+                yield* this.getFiles(filePath, _supportedCodeLanguages, _directoriesToIgnore); // recursive call when it is a directory, until it is a file
             }
+
+            // skips files
+            const fileExtension: string = name.split('.').pop() || '';
+            const isSupportedCodeLanguage = _supportedCodeLanguages.includes(fileExtension);
+            if (!isSupportedCodeLanguage) {continue;}
+
+            // process files
+            yield filePath;
         }
     }
 

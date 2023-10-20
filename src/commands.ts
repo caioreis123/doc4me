@@ -1,22 +1,13 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { Utils } from "./utils";
-import { MyConfig } from "./myConfig";
 import { AI } from "./ai/ai";
 
-function getAI(): AI {
-    vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
-    const myConfig = new MyConfig();
-    const utils = new Utils(myConfig);
-    const ai = new AI(utils);
-    return ai;
-}
-
-class Doc4Me{
+export class Doc4Me{
     public ai: AI;
 
     constructor() {
-        this.ai = getAI();
+        vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
+        this.ai = new AI();
     }
 
     public async askFile(): Promise<void> {
@@ -33,8 +24,8 @@ class Doc4Me{
     
     public async documentCurrentDirectory(): Promise<void> {
         const directoryPath = path.dirname(this.ai.utils.getCurrentFile());
-        const files = this.ai.utils.getFiles(directoryPath, this.ai.myConfig.supportedFileExtension, this.ai.myConfig.directoriesToIgnore);
-        await this.ai.explainer.explainFiles(files);
+        const filesFromCurrentDir = this.ai.utils.getFiles(directoryPath, this.ai.myConfig.supportedFileExtension, this.ai.myConfig.directoriesToIgnore);
+        await this.ai.explainer.explainFiles(filesFromCurrentDir);
     }
     
     public async documentProject(): Promise<void> {
@@ -49,14 +40,14 @@ class Doc4Me{
     }
 }
 
-const doc4me = new Doc4Me();
+// const doc4me = new Doc4Me();
 
-const commands: { [key: string]: () => Promise<void> } = {
-    'project': doc4me.documentProject.bind(doc4me),
-    'file': doc4me.documentCurrentFile.bind(doc4me),
-    'directory': doc4me.documentCurrentDirectory.bind(doc4me),
-    'calculate': doc4me.calculate.bind(doc4me),
-    'ask': doc4me.askFile.bind(doc4me),
-};
+// const commands: { [key: string]: () => Promise<void> } = {
+//     'project': doc4me.documentProject.bind(doc4me),
+//     'file': doc4me.documentCurrentFile.bind(doc4me),
+//     'directory': doc4me.documentCurrentDirectory.bind(doc4me),
+//     'calculate': doc4me.calculate.bind(doc4me),
+//     'ask': doc4me.askFile.bind(doc4me),
+// };
 
-export default commands;
+// export default commands;
