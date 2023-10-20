@@ -16,9 +16,9 @@ export class AI{
     explainer: Explainer;
     summarizer: Summarizer;
 
-    constructor(utils: Utils){
-        this.myConfig = utils.myConfig;
-        this.utils = utils;
+    constructor(){
+        this.utils = new Utils();
+        this.myConfig = this.utils.myConfig;
         this.explainer = new Explainer(this);
         this.summarizer = new Summarizer(this);
     }
@@ -46,7 +46,7 @@ export class AI{
             return chain.run(docs);
         }
         catch(err){
-            return `${this.utils.errorMessage}The file was to big and Doc4Me failed on breaking it in chunks due to the following error: ${err}`;
+            return `${this.myConfig.errorMessage}The file was to big and Doc4Me failed on breaking it in chunks due to the following error: ${err}`;
         }
     }
     

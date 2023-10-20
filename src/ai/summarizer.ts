@@ -20,10 +20,10 @@ export class Summarizer {
         let fileSummarizations: string = '';
         const docFiles = this.ai.utils.getFiles(this.ai.myConfig.docsPath);
         for await (const file of docFiles) {
-            if (file.endsWith(this.ai.utils.summaryFileName)) { continue; } // avoids endless recursion
+            if (file.endsWith(this.ai.myConfig.summaryFileName)) { continue; } // avoids endless recursion
             const fileContent = await this.ai.utils.readFile(vscode.Uri.file(file));
             const contentString = fileContent.toString();
-            if (contentString.startsWith(this.ai.utils.errorMessage)) { continue; } // avoids summarizing files that failed to be explained
+            if (contentString.startsWith(this.ai.myConfig.errorMessage)) { continue; } // avoids summarizing files that failed to be explained
             const summarizationSentence: string = await this.ai.askIA(this.ai.myConfig.summarizePrompt, contentString, file);
             fileSummarizations += `${file}\n${summarizationSentence}\n\n`;
         }
@@ -37,6 +37,6 @@ export class Summarizer {
      */
     async summarizeProject(summarization: string, myConfig: MyConfig): Promise<void> {
         const projectSummary = await this.ai.askIA(myConfig.explainProjectPrompt, summarization, '.md');
-        this.ai.utils.writeFile(this.ai.utils.summaryFileName, projectSummary);
+        this.ai.utils.writeFile(this.ai.myConfig.summaryFileName, projectSummary);
     }
 }

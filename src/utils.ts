@@ -5,14 +5,12 @@ import {MyConfig} from './myConfig';
 export class Utils{
     myConfig: MyConfig;
 
-    constructor (config: MyConfig) {
-        this.myConfig = config;
+    constructor () {
+        this.myConfig = new MyConfig();
     }
 
-    public readonly summaryFileName = 'projectSummary.md';
     public readFile = vscode.workspace.fs.readFile;
     public readonly readDirectory = vscode.workspace.fs.readDirectory;
-    public readonly errorMessage = 'Could not get AI response. ';
 
     public async writeFile(fileName: string, content: string): Promise<void>{
         const filePath = path.join(this.myConfig.docsPath, fileName);

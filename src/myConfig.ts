@@ -24,29 +24,36 @@ export const fileExtensionToLanguage: { [extension: string]: SupportedLanguages 
     "sol": "sol"
 };
 
-const noMDExtensions = Object.keys(fileExtensionToLanguage).filter((ext) => ext !== "md");
+const noMDExtensions = Object.keys(fileExtensionToLanguage).filter((ext) => ext !== "md"); // important to avoid explaining markdown files with markdown
 const defaultDirToIgnore = ["test", "tests", "docs", "node_modules", "dist", "target", "build", "out", "bin"];
+const vsCodeConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
+const userCodeExtensionsConfig = vsCodeConfig.get('doc4me.supportedCodeExtensions', []);
+const userIgnoredDirsConfig = vsCodeConfig.get('doc4me.directoriesToIgnore', []);
+let apiKey: string = vsCodeConfig.get('doc4me.openAiApiKey', '');
+const defaultRootPath: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+const defaultDocsPath: string = path.join(defaultRootPath, 'docs');
+const model: string = vsCodeConfig.get('doc4me.model', 'gpt-3.5-turbo');
 
 
 export class MyConfig {
-    public vsCodeConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
-    private defaultRootPath: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-    private defaultDocsPath: string = path.join(this.defaultRootPath, 'docs');
-    public readonly summarizePrompt: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
-    
-    public readonly rootPath: string = this.vsCodeConfig.get('doc4me.rootPath', this.defaultRootPath);
-    public readonly docsPath: string = this.vsCodeConfig.get('doc4me.docsPath', this.defaultDocsPath);
-    public readonly model: string = this.vsCodeConfig.get('doc4me.model', 'gpt-3.5-turbo');
-    public readonly explainFilePrompt: string =  this.vsCodeConfig.get('doc4me.fileExplanationPrompt', 'Explain the following code: \n');
-    public readonly explainProjectPrompt: string = this.vsCodeConfig.get('doc4me.projectExplanationPrompt', 'Explain what this code project do, given the following explanations of each file: \n');
-    public apiKey: string = this.vsCodeConfig.get('doc4me.openAiApiKey', '');
-    
-    private sce = this.vsCodeConfig.get('doc4me.supportedCodeExtensions', []);
-    public readonly supportedFileExtension: string[] = this.sce.length === 0 ? noMDExtensions : this.sce;
-    
-    private dti = this.vsCodeConfig.get('doc4me.directoriesToIgnore', []);
-    public readonly directoriesToIgnore: string[] = this.dti.length === 0 ? defaultDirToIgnore : this.dti;
+    constructor(){
+        const docsDir = vscode.Uri.file(this.docsPath);
+        vscode.workspace.fs.createDirectory(docsDir);
+    }
 
+    public readonly summarizePrompt: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
+    public readonly summaryFileName = 'projectSummary.md';
+    public readonly errorMessage = 'Could not get AI response. ';
+
+    public readonly supportedFileExtension: string[] = userCodeExtensionsConfig.length === 0 ? noMDExtensions : userCodeExtensionsConfig;
+    public readonly directoriesToIgnore: string[] = userIgnoredDirsConfig.length === 0 ? defaultDirToIgnore : userIgnoredDirsConfig;
+    // this two step process to set configurations of array type is necessary because empty arrays are truthy in javascript
+
+    public readonly rootPath: string = vsCodeConfig.get('doc4me.rootPath', defaultRootPath);
+    public readonly docsPath: string = vsCodeConfig.get('doc4me.docsPath', defaultDocsPath);
+
+    public readonly explainFilePrompt: string =  vsCodeConfig.get('doc4me.fileExplanationPrompt', 'Explain the following code: \n');
+    public readonly explainProjectPrompt: string = vsCodeConfig.get('doc4me.projectExplanationPrompt', 'Explain what this code project do, given the following explanations of each file: \n');
     private refinePromptTemplateString = `
         Your job is to produce a final summary
         We have provided an existing summary up to a certain point: "{existing_answer}"
@@ -59,7 +66,9 @@ export class MyConfig {
         If the context isn't useful, return the original summary.
         Given the new context, refine the original summary in the same language as the following prompt between ###:\n
         ###${this.explainFilePrompt}###
-        `; // this prompting template is necessary to allow model responses in different languages
+        `; 
+        // this prompting template is necessary to allow model responses in different languages
+        // this is used in the last step of explaining a big file, after it is broken in chunks
 
     public refinePrompt = new PromptTemplate({
     inputVariables: ["existing_answer", "text"],
@@ -67,19 +76,14 @@ export class MyConfig {
     });
 
     public async getLLM(): Promise<OpenAI>{
-        if (!this.apiKey) {
+        if (!apiKey) {
             await vscode.window.showInputBox({prompt: 'Please enter your OpenAI API key', ignoreFocusOut: true}).then((inputValue) => {
                 if (inputValue) {
-                    this.vsCodeConfig.update('doc4me.openAiApiKey', inputValue, true);
-                    this.apiKey = inputValue;
+                    vsCodeConfig.update('doc4me.openAiApiKey', inputValue, true);
+                    apiKey = inputValue;
                 }
             });
         }
-        return new OpenAI({modelName:this.model, temperature: 0, openAIApiKey: this.apiKey });
-    }
-
-    constructor(){
-        const docsDir = vscode.Uri.file(this.docsPath);
-        vscode.workspace.fs.createDirectory(docsDir);
+        return new OpenAI({modelName:model, temperature: 0, openAIApiKey: apiKey });
     }
 }
