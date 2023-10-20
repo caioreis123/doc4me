@@ -8,22 +8,22 @@ import { Explainer } from "./explainer";
 import { Summarizer } from "./summarizer";
 
 
+
+
 export class AI{
     myConfig: MyConfig;
     utils: Utils;
-    llm: OpenAI;
     explainer: Explainer;
     summarizer: Summarizer;
 
     constructor(utils: Utils){
         this.myConfig = utils.myConfig;
         this.utils = utils;
-        this.llm = new OpenAI({modelName:utils.myConfig.model, temperature: 0, openAIApiKey: utils.myConfig.apiKey });
         this.explainer = new Explainer(this);
         this.summarizer = new Summarizer(this);
     }
 
-    async queryTextFragments(content: string, filePath: string): Promise<string> {
+    async queryTextFragments(content: string, filePath: string, llm: OpenAI): Promise<string> {
         console.log(`Splitting big file in chunks: ${filePath}`);
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
@@ -42,7 +42,7 @@ export class AI{
             const docs = await textSplitter.createDocuments([content]);
             console.log(docs.length+ " chunks created");
 
-            const chain = loadSummarizationChain(this.llm, {type:"refine", refinePrompt: this.myConfig.refinePrompt});
+            const chain = loadSummarizationChain(llm, {type:"refine", refinePrompt: this.myConfig.refinePrompt});
             return chain.run(docs);
         }
         catch(err){
@@ -51,12 +51,13 @@ export class AI{
     }
     
     async askIA(prompt: string, content: string, filePath: string): Promise<string> {
+        const llm = await this.myConfig.getLLM();
         try{
-            return await this.llm.predict(prompt + content);
+            return await llm.predict(prompt + content);
         }
         catch(error: any){
             if(error.code === 'context_length_exceeded'){
-                return await this.queryTextFragments(content, filePath);
+                return await this.queryTextFragments(content, filePath, llm);
             }
             throw error;
         }
@@ -75,12 +76,13 @@ export class AI{
     }
 
     async calculateTokens(filesToCalculate: AsyncGenerator<string, any, unknown>): Promise<void>{
+        const llm = await this.myConfig.getLLM();
         let csvContent = 'Tokens,File\n';
         let tokensTotal = 0;
         for await (const file of filesToCalculate) {
             let content: string = await this.utils.getContent(file);
             if (!content) {continue;}
-            const tokensAmount = await this.llm.getNumTokens(content);
+            const tokensAmount = await llm.getNumTokens(content);
             console.log(`${tokensAmount} tokens for ${file}`);
             const csvLine = `${tokensAmount},${file}\n`;
             csvContent += csvLine;

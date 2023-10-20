@@ -4,19 +4,14 @@ import { Utils } from "./utils";
 import { MyConfig } from "./myConfig";
 import { AI } from "./ai/ai";
 
-function getAI(): AI {
-    vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
-    const myConfig = new MyConfig();
-    const utils = new Utils(myConfig);
-    const ai = new AI(utils);
-    return ai;
-}
-
 class Doc4Me{
     public ai: AI;
 
     constructor() {
-        this.ai = getAI();
+        vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
+        const myConfig = new MyConfig();
+        const utils = new Utils(myConfig);
+        this.ai  = new AI(utils);
     }
 
     public async askFile(): Promise<void> {

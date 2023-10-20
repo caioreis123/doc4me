@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import commands from "./commands";
+import commands from './commands';
 
 function getCompletionMessage(): string {
     const robot = String.fromCodePoint(0x1F916);

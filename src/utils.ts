@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import {MyConfig} from './myConfig';
-import {AI} from "./ai/ai";
 
 export class Utils{
     myConfig: MyConfig;

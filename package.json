@@ -22,33 +22,25 @@
       {
         "title": "Doc4me",
         "properties": {
-          "directoriesToIgnore": {
+          "doc4me.directoriesToIgnore": {
             "type": "array",
-            "default": [
-              "docs",
-              "node_modules",
-              "dist"
-            ],
             "markdownDescription": "Files inside these directories will not be analyzed."
           },
-          "supportedCodeExtensions": {
+          "doc4me.supportedCodeExtensions": {
             "type": "array",
-            "default": [
-              "cpp", "go", "java", "js", "php", "proto", "py", "rst", "rb", "rs", "scala", "swift", "md", "tex", "html", "sol"
-            ],
             "markdownDescription": "The file extensions supported by Doc4me."
           },
-          "projectExplanationPrompt": {
+          "doc4me.projectExplanationPrompt": {
             "type": "string",
             "default": "Explain what this code project do, given the following explanations of each file: \n",
             "markdownDescription": "The prompt used to explain the whole project based on the explanation generated of each file."
           },
-          "fileExplanationPrompt": {
+          "doc4me.fileExplanationPrompt": {
             "type": "string",
             "default": "What this code do?\n",
             "markdownDescription": "The prompt used to explain a code file."
           },
-          "openAiApiKey": {
+          "doc4me.openAiApiKey": {
             "type": "string",
             "markdownDescription": "The openai key used to generate documentation."
           }
