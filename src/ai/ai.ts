@@ -1,4 +1,4 @@
-import { MyConfig, SupportedLanguages, fileExtensionToLanguage } from "../myConfig";
+import { ERROR_MESSAGE, MyConfig, SupportedLanguages, fileExtensionToLanguage } from "../myConfig";
 import * as vscode from 'vscode';
 import { Utils } from "../utils";
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
@@ -6,24 +6,21 @@ import { loadSummarizationChain } from "langchain/chains";
 import { OpenAI } from "langchain/llms/openai";
 import { Explainer } from "./explainer";
 import { Summarizer } from "./summarizer";
-
-
+import { PromptTemplate } from "langchain/prompts";
 
 
 export class AI{
-    myConfig: MyConfig;
     utils: Utils;
     explainer: Explainer;
     summarizer: Summarizer;
 
     constructor(){
         this.utils = new Utils();
-        this.myConfig = this.utils.myConfig;
         this.explainer = new Explainer(this);
         this.summarizer = new Summarizer(this);
     }
 
-    async queryTextFragments(content: string, filePath: string, llm: OpenAI): Promise<string> {
+    async queryTextFragments(content: string, filePath: string, llm: OpenAI, refinePrompt: PromptTemplate): Promise<string> {
         console.log(`Splitting big file in chunks: ${filePath}`);
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
@@ -42,41 +39,41 @@ export class AI{
             const docs = await textSplitter.createDocuments([content]);
             console.log(docs.length+ " chunks created");
 
-            const chain = loadSummarizationChain(llm, {type:"refine", refinePrompt: this.myConfig.refinePrompt});
+            const chain = loadSummarizationChain(llm, {type:"refine", refinePrompt: refinePrompt});
             return chain.run(docs);
         }
         catch(err){
-            return `${this.myConfig.errorMessage}The file was to big and Doc4Me failed on breaking it in chunks due to the following error: ${err}`;
+            return `${ERROR_MESSAGE}The file was to big and Doc4Me failed on breaking it in chunks due to the following error: ${err}`;
         }
     }
     
-    async askIA(prompt: string, content: string, filePath: string): Promise<string> {
-        const llm = await this.myConfig.getLLM();
+    async askIA(prompt: string, content: string, filePath: string, config: MyConfig): Promise<string> {
+        const llm = await config.getLLM();
         try{
             return await llm.predict(prompt + content);
         }
         catch(error: any){
             if(error.code === 'context_length_exceeded'){
-                return await this.queryTextFragments(content, filePath, llm);
+                return await this.queryTextFragments(content, filePath, llm, config.refinePrompt);
             }
             throw error;
         }
     }
 
-    async askFile(file: string, question: string){
+    async askFile(file: string, question: string, config: MyConfig): Promise<void>{
         const content: string = await this.utils.getContent(file);
         if (!content) {return;}
         
-        const answer = await this.askIA(question, content, file);
+        const answer = await this.askIA(question, content, file, config);
         
         vscode.window.showInformationMessage(answer);
         const answerWithLineBreaks = answer.split('. ').join('.\n');
-        this.utils.writeFile('.qa.txt', answerWithLineBreaks);
+        this.utils.writeFile('.qa.txt', answerWithLineBreaks, config.docsPath);
         vscode.window.showInformationMessage('The full answer is in the file .qa.txt');
     }
 
-    async calculateTokens(filesToCalculate: AsyncGenerator<string, any, unknown>): Promise<void>{
-        const llm = await this.myConfig.getLLM();
+    async calculateTokens(filesToCalculate: AsyncGenerator<string, any, unknown>, config: MyConfig): Promise<void>{
+        const llm = await config.getLLM();
         let csvContent = 'Tokens,File\n';
         let tokensTotal = 0;
         for await (const file of filesToCalculate) {
@@ -89,7 +86,7 @@ export class AI{
             tokensTotal += tokensAmount;
         }
         csvContent += `${tokensTotal},All files\n`;
-        this.utils.writeFile('tokens.csv', csvContent);
+        this.utils.writeFile('tokens.csv', csvContent, config.docsPath);
     }
 }
 

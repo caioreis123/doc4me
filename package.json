@@ -23,12 +23,12 @@
         "title": "Doc4me",
         "properties": {
           "doc4me.directoriesToIgnore": {
-            "type": "array",
-            "markdownDescription": "Files inside these directories will not be analyzed."
+            "type": "string",
+            "markdownDescription": "Files inside these directories will not be analyzed. Comma separated."
           },
           "doc4me.supportedCodeExtensions": {
-            "type": "array",
-            "markdownDescription": "The file extensions supported by Doc4me."
+            "type": "string",
+            "markdownDescription": "The file extensions supported by Doc4me. Comma separated."
           },
           "doc4me.projectExplanationPrompt": {
             "type": "string",
@@ -40,9 +40,18 @@
             "default": "What this code do?\n",
             "markdownDescription": "The prompt used to explain a code file."
           },
-          "doc4me.openAiApiKey": {
+          "doc4me.openaiAPIKey": {
             "type": "string",
-            "markdownDescription": "The openai key used to generate documentation."
+            "markdownDescription": "The openai api key used to generate documentation."
+          },
+          "doc4me.model": {
+            "type": "string",
+            "default": "gpt-3.5-turbo",
+            "markdownDescription": "The openai model used to generate documentation."
+          },
+          "doc4me.docsPath":{
+            "type": "string",
+            "markdownDescription": "The directory where the documentation will be generated. Defaults to $projectRoot/docs"
           }
         }
       }

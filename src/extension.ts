@@ -30,6 +30,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
+    console.log('Doc4me is now active and ai instantiated!');
     registerCommands(context);
 }
 

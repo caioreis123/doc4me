@@ -1,19 +1,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {MyConfig} from './myConfig';
+import {MyConfig, ROOT_PATH} from './myConfig';
 
 export class Utils{
-    myConfig: MyConfig;
-
-    constructor () {
-        this.myConfig = new MyConfig();
-    }
-
     public readFile = vscode.workspace.fs.readFile;
     public readonly readDirectory = vscode.workspace.fs.readDirectory;
 
-    public async writeFile(fileName: string, content: string): Promise<void>{
-        const filePath = path.join(this.myConfig.docsPath, fileName);
+    public async writeFile(fileName: string, content: string, docsPath: string): Promise<void>{
+        const filePath = path.join(docsPath, fileName);
         vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(content));
     };
 
@@ -74,8 +68,8 @@ export class Utils{
         return currentFile;
     }
 
-    public getDocFile(file: string): vscode.Uri{
-        const docPath: string = file.replace(this.myConfig.rootPath, this.myConfig.docsPath).slice(0, -2) + "md";
+    public getDocFile(file: string, config: MyConfig): vscode.Uri{
+        const docPath: string = file.replace(ROOT_PATH, config.docsPath).slice(0, -2) + "md";
         return vscode.Uri.file(docPath);
     }
 

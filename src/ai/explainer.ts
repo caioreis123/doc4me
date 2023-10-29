@@ -15,28 +15,28 @@ export class Explainer {
         if (!content) { return ''; }
 
         console.log(`Explaining ${codePath}`);
-        const codeExplanation = await this.ai.askIA(myConfig.explainFilePrompt, content, codePath);
+        const codeExplanation = await this.ai.askIA(myConfig.explainFilePrompt, content, codePath, myConfig);
         return codeExplanation;
     }
 
-    async explainFile(file: string): Promise<void> {
-        const codeExplanation: string = await this.explainCode(file, false, true, this.ai.myConfig);
-        await this.ai.utils.createDoc(codeExplanation, this.ai.utils.getDocFile(file));
+    async explainFile(file: string, config: MyConfig): Promise<void> {
+        const codeExplanation: string = await this.explainCode(file, false, true, config);
+        await this.ai.utils.createDoc(codeExplanation, this.ai.utils.getDocFile(file, config));
     }
 
-    async explainFiles(filesToExplain: AsyncGenerator<string, any, unknown>): Promise<void> {
+    async explainFiles(filesToExplain: AsyncGenerator<string, any, unknown>, config: MyConfig): Promise<void> {
         let docExists: boolean = false;
         let recreate: boolean = true;
         let askedTheUserForRecreation: boolean = false;
 
         for await (const file of filesToExplain) {
-            const docFile = this.ai.utils.getDocFile(file);
+            const docFile = this.ai.utils.getDocFile(file, config);
             docExists = await vscode.workspace.fs.stat(docFile).then(() => true, () => false);
             if (docExists && !askedTheUserForRecreation) {
                 recreate = await vscode.window.showInformationMessage('Want to overwrite documentation generated previously?', 'Yes', 'No') === 'Yes';
                 askedTheUserForRecreation = true;
             }
-            const codeExplanation: string = await this.explainCode(file, docExists, recreate, this.ai.myConfig);
+            const codeExplanation: string = await this.explainCode(file, docExists, recreate, config);
             await this.ai.utils.createDoc(codeExplanation, docFile);
         }
     }
