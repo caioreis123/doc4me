@@ -24,10 +24,12 @@
         "properties": {
           "doc4me.directoriesToIgnore": {
             "type": "string",
+            "default": "test,tests,docs,node_modules,dist,target,build,out,bin",
             "markdownDescription": "Files inside these directories will not be analyzed. Comma separated."
           },
           "doc4me.supportedCodeExtensions": {
             "type": "string",
+            "default": "cpp,go,java,js,php,proto,py,rst,rb,rs,scala,swift,tex,html,sol",
             "markdownDescription": "The file extensions supported by Doc4me. Comma separated."
           },
           "doc4me.projectExplanationPrompt": {
@@ -37,7 +39,7 @@
           },
           "doc4me.fileExplanationPrompt": {
             "type": "string",
-            "default": "What this code do?\n",
+            "default": "Explain this code: \n",
             "markdownDescription": "The prompt used to explain a code file."
           },
           "doc4me.openaiAPIKey": {
@@ -59,23 +61,23 @@
     "commands": [
       {
         "command": "doc4me.project",
-        "title": "Doc 4 me the whole project - doc4me"
+        "title": "Doc4me whole project"
       },
       {
         "command": "doc4me.file",
-        "title": "Doc 4 me the current file - doc4me"
+        "title": "Doc4me current file"
       },
       {
         "command": "doc4me.directory",
-        "title": "Doc 4 me the current directory - doc4me"
+        "title": "Doc4me current directory"
       },
       {
         "command": "doc4me.calculate",
-        "title": "Calculate tokens per file - doc4me"
+        "title": "Doc4me - Calculate tokens"
       },
       {
         "command": "doc4me.ask",
-        "title": "Ask a question about the current file - doc4me"
+        "title": "Doc4me - Ask current file"
       }
     ]
   },

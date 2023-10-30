@@ -33,8 +33,8 @@ const defaultConfig: { [key: string]: string } = {
     model: "gpt-3.5-turbo",
     docsPath: path.join(ROOT_PATH, 'docs'),
     supportedCodeExtensions: Object.keys(fileExtensionToLanguage).filter((ext) => ext !== "md").join(','), // important to avoid explaining markdown files with markdown,
-    directoriesToIgnore: ["test", "tests", "docs", "node_modules", "dist", "target", "build", "out", "bin"].join(','),
-    fileExplanationPrompt: 'Explain the following code: \n',
+    directoriesToIgnore: "test,tests,docs,node_modules,dist,target,build,out,bin",
+    fileExplanationPrompt: 'Explain this code: \n',
     projectExplanationPrompt: 'Explain what this code project do, given the following explanations of each file: \n',
 };
 
