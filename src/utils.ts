@@ -4,7 +4,6 @@ import {MyConfig, ROOT_PATH} from './myConfig';
 
 export class Utils{
     public readFile = vscode.workspace.fs.readFile;
-    public readonly readDirectory = vscode.workspace.fs.readDirectory;
 
     public async writeFile(fileName: string, content: string, docsPath: string): Promise<void>{
         const filePath = path.join(docsPath, fileName);
@@ -25,17 +24,17 @@ export class Utils{
         /**
      * Recursive function to get all files in a directory that matches the supported language extension.
      * @param {string} dir - The directory to get files from.
-     * @param {string[]} _supportedCodeLanguages - The file extensions to get.
-     * @param {string[]} _directoriesToIgnore - The directories to ignore. Important for avoiding explaining directories like node_modules. On explanation it get its value from the directoriesToIgnore config. On summarization has no value.
+     * @param {string[]} supportedCodeLanguages - The file extensions to get.
+     * @param {string[]} directoriesToIgnore - The directories to ignore. Important for avoiding explaining directories like node_modules. On explanation it get its value from the directoriesToIgnore config. On summarization has no value.
      */
-    async * getFiles(dir: string, _supportedCodeLanguages: string[] = ['md'], _directoriesToIgnore: string[] = ['']): AsyncGenerator<string> {
-        const fileList = await this.readDirectory(vscode.Uri.file(dir));
+    async * getFiles(dir: string, supportedCodeLanguages: string[] = ['md'], directoriesToIgnore: string[] = ['']): AsyncGenerator<string> {
+        const fileList = await vscode.workspace.fs.readDirectory(vscode.Uri.file(dir));
         for (const [name, type] of fileList) {
             // skip hidden files/directories
             // skip ignored directories
             const hiddenFile = name.startsWith('.');
             const isDirectory = type === vscode.FileType.Directory;
-            const isIgnoredDirectory = isDirectory && _directoriesToIgnore.includes(name);
+            const isIgnoredDirectory = isDirectory && directoriesToIgnore.includes(name);
             const filePath = path.join(dir, name);
             if (filePath==='/Users/caio/ifba/tcc/tcc/db/html') {
                 console.log('a58e725f-7fce-4cc4-be9e-ac3204041847');    
@@ -46,13 +45,13 @@ export class Utils{
 
             // process directory
             if (isDirectory) {
-                yield* this.getFiles(filePath, _supportedCodeLanguages, _directoriesToIgnore);
+                yield* this.getFiles(filePath, supportedCodeLanguages, directoriesToIgnore);
                 continue; // without this continue the code below would be executed for directories
             } 
 
             // skip not supported file
             const fileExtension: string = name.split('.').pop() || '';
-            const isSupportedCodeLanguage = _supportedCodeLanguages.includes(fileExtension);
+            const isSupportedCodeLanguage = supportedCodeLanguages.includes(fileExtension);
             if (!isSupportedCodeLanguage) {continue;}
             
             // return file
@@ -60,7 +59,7 @@ export class Utils{
         }
     }
 
-    public getCurrentFile() {
+    public getCurrentFile(): string {
         let currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
         if (!currentFile) {
             throw new Error('No file is currently open');

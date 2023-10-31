@@ -25,16 +25,13 @@ export class AI{
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
             const fileLanguage: SupportedLanguages = fileExtensionToLanguage[fileExtension];
-           
             const splitConfig = {
                 chunkSize: 10000, // this number was found empirically trying to find the maximum number of tokens that OpenAI can process per call
                 chunkOverlap: 0,
             };
-            
             const textSplitter = fileLanguage
             ? RecursiveCharacterTextSplitter.fromLanguage(fileLanguage, splitConfig)
             : new RecursiveCharacterTextSplitter(splitConfig);
-
             
             const docs = await textSplitter.createDocuments([content]);
             console.log(docs.length+ " chunks created");

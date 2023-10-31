@@ -3,12 +3,20 @@ import * as path from "path";
 import { AI } from "./ai/ai";
 import { MyConfig, ROOT_PATH } from "./myConfig";
 
-class Doc4Me{
+class Commands{
     public ai: AI;
+    public commands: { [key: string]: () => Promise<void> };
 
     constructor() {
         vscode.window.showInformationMessage('Doc4me started! Wait for the message of completion at the end.');
         this.ai  = new AI();
+        this.commands = { // we need to make all this binding so when we call the function it has the correct this of the class instead of the commands object
+            'project': this.documentProject.bind(this),
+            'file': this.documentCurrentFile.bind(this),
+            'directory': this.documentCurrentDirectory.bind(this),
+            'calculate': this.calculate.bind(this),
+            'ask': this.askFile.bind(this),
+        };
     }
 
     public async askFile(): Promise<void> {
@@ -47,14 +55,4 @@ class Doc4Me{
     }
 }
 
-const doc4me = new Doc4Me();
-
-const commands: { [key: string]: () => Promise<void> } = {
-    'project': doc4me.documentProject.bind(doc4me),
-    'file': doc4me.documentCurrentFile.bind(doc4me),
-    'directory': doc4me.documentCurrentDirectory.bind(doc4me),
-    'calculate': doc4me.calculate.bind(doc4me),
-    'ask': doc4me.askFile.bind(doc4me),
-};
-
-export default commands;
+export default new Commands().commands;
