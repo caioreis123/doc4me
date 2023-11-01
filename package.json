@@ -3,7 +3,7 @@
   "displayName": "Doc4me",
   "description": "ai documentation generation tool",
   "icon": "./neonRobot.png",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.81.0"
   },
@@ -51,7 +51,7 @@
             "default": "gpt-3.5-turbo",
             "markdownDescription": "The openai model used to generate documentation."
           },
-          "doc4me.docsPath":{
+          "doc4me.docsPath": {
             "type": "string",
             "markdownDescription": "The directory where the documentation will be generated. Defaults to $projectRoot/docs"
           }
