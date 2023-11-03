@@ -1,26 +1,14 @@
-import { ERROR_MESSAGE, MyConfig, SupportedLanguages, fileExtensionToLanguage } from "../myConfig";
+import { ASK_FILE, ERROR_MESSAGE, MyConfig, SupportedLanguages, fileExtensionToLanguage } from "../myConfig";
 import * as vscode from 'vscode';
 import { Utils } from "../utils";
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
 import { loadSummarizationChain } from "langchain/chains";
 import { OpenAI } from "langchain/llms/openai";
-import { Explainer } from "./explainer";
-import { Summarizer } from "./summarizer";
 import { PromptTemplate } from "langchain/prompts";
 
 
 export class AI{
-    utils: Utils;
-    explainer: Explainer;
-    summarizer: Summarizer;
-
-    constructor(){
-        this.utils = new Utils();
-        this.explainer = new Explainer(this);
-        this.summarizer = new Summarizer(this);
-    }
-
-    async queryTextFragments(content: string, filePath: string, llm: OpenAI, refinePrompt: PromptTemplate): Promise<string> {
+    static async queryTextFragments(content: string, filePath: string, llm: OpenAI, refinePrompt: PromptTemplate): Promise<string> {
         console.log(`Splitting big file in chunks: ${filePath}`);
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
@@ -44,10 +32,11 @@ export class AI{
         }
     }
     
-    async askIA(prompt: string, content: string, filePath: string, config: MyConfig): Promise<string> {
-        const llm = await config.getLLM();
+    static async askIA(prompt: string, content: string, filePath: string, config: MyConfig): Promise<string> {
+        const llm = await config.getLLM(filePath);
         try{
-            return await llm.predict(prompt + content);
+            const llmResponse = await llm.predict(prompt + content);
+            return llmResponse;
         }
         catch(error: any){
             if(error.code === 'context_length_exceeded'){
@@ -57,33 +46,16 @@ export class AI{
         }
     }
 
-    async askFile(file: string, question: string, config: MyConfig): Promise<void>{
-        const content: string = await this.utils.getContent(file);
+    static async askFile(file: string, question: string, config: MyConfig): Promise<void>{
+        const content: string = await Utils.getContent(file);
         if (!content) {return;}
         
-        const answer = await this.askIA(question, content, file, config);
+        const answer = await AI.askIA(question, content, file, config);
         
         vscode.window.showInformationMessage(answer);
         const answerWithLineBreaks = answer.split('. ').join('.\n');
-        this.utils.writeFile('.qa.txt', answerWithLineBreaks, config.docsPath);
-        vscode.window.showInformationMessage('The full answer is in the file .qa.txt');
-    }
-
-    async calculateTokens(filesToCalculate: AsyncGenerator<string, any, unknown>, config: MyConfig): Promise<void>{
-        const llm = await config.getLLM();
-        let csvContent = 'Tokens,File\n';
-        let tokensTotal = 0;
-        for await (const file of filesToCalculate) {
-            let content: string = await this.utils.getContent(file);
-            if (!content) {continue;}
-            const tokensAmount = await llm.getNumTokens(content);
-            console.log(`${tokensAmount} tokens for ${file}`);
-            const csvLine = `${tokensAmount},${file}\n`;
-            csvContent += csvLine;
-            tokensTotal += tokensAmount;
-        }
-        csvContent += `${tokensTotal},All files\n`;
-        this.utils.writeFile('tokens.csv', csvContent, config.docsPath);
+        Utils.writeFile(ASK_FILE, answerWithLineBreaks, config.docsPath);
+        vscode.window.showInformationMessage(`The full answer is in the file ${ASK_FILE}`);
     }
 }
 
