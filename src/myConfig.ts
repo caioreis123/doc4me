@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { PromptTemplate } from 'langchain/prompts';
-import { OpenAI } from "langchain/llms/openai";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import { LLMResult } from 'langchain/dist/schema';
+import { Utils } from './utils';
+import * as fs from 'fs';
 
 export type SupportedLanguages = "cpp" | "go" | "java" | "js" | "php" | "proto" | "python" | "rst" | "ruby" | "rust" | "scala" | "swift" | "markdown" | "latex" | "html" | "sol";
 
@@ -28,6 +31,8 @@ export const ROOT_PATH: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsP
 export const SUMMARIZE_PROMPT: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
 export const SUMMARY_FILE_NAME = 'projectSummary.md';
 export const ERROR_MESSAGE = 'Could not get AI response. ';
+export const ASK_FILE = 'ask.txt';
+export const TOKENS_FILE = 'tokens.csv';
 
 const defaultConfig: { [key: string]: string } = {
     model: "gpt-3.5-turbo",
@@ -46,6 +51,7 @@ export class MyConfig {
     public readonly explainFilePrompt: string;
     public readonly explainProjectPrompt: string;
     public readonly refinePrompt: PromptTemplate;
+    public tokenFile: string = '';
 
     constructor(){
         // we need to create a new config here in order to get values changed by the user after the extension was activated
@@ -53,8 +59,8 @@ export class MyConfig {
         
         // creates the docs directory if it doesn't exist
         this.docsPath = this.getConf('docsPath');
-        const docsDir = vscode.Uri.file(this.docsPath);
-        vscode.workspace.fs.createDirectory(docsDir);
+        this.createDocsDirectory();
+        this.checkAndCreateCSVTokensFile();
 
         this.supportedFileExtension = this.getConf('supportedCodeExtensions').split(',');
         this.directoriesToIgnore = this.getConf('directoriesToIgnore').split(',');
@@ -84,6 +90,24 @@ export class MyConfig {
         });
     }
 
+    public createDocsDirectory(): void {
+        if (!fs.existsSync(this.docsPath)){
+            fs.mkdirSync(this.docsPath);
+        }
+    }
+
+    public createCSVTokensFile(): void {
+        const csvHeader = 'file,inputTokens,outputTokens,totalTokens,time\n';
+        fs.writeFileSync(this.tokenFile, csvHeader);
+    }
+
+    private checkAndCreateCSVTokensFile(): void {
+        this.tokenFile = path.join(this.docsPath, TOKENS_FILE);
+        const tokenFileExists = fs.existsSync(this.tokenFile);
+        if (tokenFileExists) {return;}
+        this.createCSVTokensFile();
+    }
+
     public getConf(key: string): string {
         const value = this.vsCodeConfig.get(`doc4me.${key}`, '');
         if (!value  && defaultConfig[key]){
@@ -92,8 +116,22 @@ export class MyConfig {
         return value;
     }
 
-    public async getLLM(): Promise<OpenAI>{
+    public async getLLM(filePath: string): Promise<ChatOpenAI>{
         const model: string = this.getConf('model');
+        const callbacks = [
+            {
+                handleLLMEnd: async (output: LLMResult) => {
+                    const usage = output.llmOutput?.tokenUsage;
+                    const inputTokens = usage.promptTokens;
+                    const outputTokens = usage.completionTokens;
+                    const totalTokens = usage.totalTokens;
+                    const now = new Date().toISOString();
+                    const csvLine = `${filePath},${inputTokens},${outputTokens},${totalTokens},${now}\n`;
+                    Utils.appendCSVFile(csvLine, this.docsPath);
+                }
+            }
+        ];
+        
         let apiKey = this.vsCodeConfig.get('doc4me.openaiAPIKey', '');
 
         if (!apiKey) {
@@ -104,6 +142,7 @@ export class MyConfig {
                 }
             });
         }
-        return new OpenAI({modelName:model, temperature: 0, openAIApiKey: apiKey });
+        
+        return new ChatOpenAI({modelName:model, temperature: 0, openAIApiKey: apiKey, callbacks:callbacks });
     }
 }

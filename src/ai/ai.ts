@@ -3,12 +3,12 @@ import * as vscode from 'vscode';
 import { Utils } from "../utils";
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
 import { loadSummarizationChain } from "langchain/chains";
-import { OpenAI } from "langchain/llms/openai";
 import { PromptTemplate } from "langchain/prompts";
+import { ChatOpenAI } from "langchain/chat_models/openai";
 
 
 export class AI{
-    static async queryTextFragments(content: string, filePath: string, llm: OpenAI, refinePrompt: PromptTemplate): Promise<string> {
+    static async queryTextFragments(content: string, filePath: string, llm: ChatOpenAI, refinePrompt: PromptTemplate): Promise<string> {
         console.log(`Splitting big file in chunks: ${filePath}`);
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
