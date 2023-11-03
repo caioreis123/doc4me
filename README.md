@@ -14,7 +14,7 @@ Will generate documentation for just the files stored in the directory of the fi
 As you might guess it by now, will generate documentation for just the file the use is currently viewing when the command is called.
 
 ## 4. Ask a question about the current file
-Opens up an input box in which the user will be able to ask any question about the contents of the currently viewing file. The answer will appear on a popup box, but also on a file named `.qa.txt` inside the already mentioned `docs` directory on the project root.
+Opens up an input box in which the user will be able to ask any question about the contents of the currently viewing file. The answer will appear on a popup box, but also on a file named `ask.txt` inside the already mentioned `docs` directory on the project root.
 
-## 5. Calculate token per file
-It is an auxiliary command to help the user estimate the billing for the extension usage. The data will be stored as a csv file named `tokens.csv` on the `docs` directory. Remember that only the tokens of the files will be shown, but Openai also bill for the tokens used on the model response.
+## 5. Calculate Billing
+At each command execution the extension stores the amount of input and output tokens on a `tokens.csv` file that is used to calculate the cost in dollars of the calls until that point. It can be useful in big projects so the user can generate documentation for just one directory and calculate that cost so the user can estimate the cost for other directories. The csv file can be manually deleted in order to reset cost calculation for future api calls.
