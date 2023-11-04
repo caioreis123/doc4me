@@ -1,53 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {MyConfig, ROOT_PATH, TOKENS_FILE} from './myConfig';
+import {MyConfig, ROOT_PATH} from './myConfig';
 
 export class Utils{
     static readFile = vscode.workspace.fs.readFile;
-
-    static async calculateTokens(config: MyConfig): Promise<void> {
-        if (await this.hasNoCSVData(config)) {
-            const message = 'No token usage data found. Please run one of the other doc4me commands first to start using the OpenAI API.';
-            vscode.window.showInformationMessage(message);
-            return;
-        }
-        let input: number = 0;
-        let output: number = 0;
-        const csvContent = await Utils.getContent(config.tokenFile);
-        const lines = csvContent.split('\n');
-        lines.shift(); // removes the header
-        lines.forEach(line => {
-            const [file, inputTokens, outputTokens, totalTokens, time] = line.split(',');
-            if (totalTokens) {
-                input += parseInt(inputTokens);
-                output += parseInt(outputTokens);
-            }
-        });
-        const inputDollars = input * 0.0000015;
-        const outputDollars = output * 0.000002;
-        const bill = inputDollars + outputDollars;
-        const message = `U$${bill.toFixed(4)}! (If you are using the default gpt-3.5 model and the OpenAI price for it still $0.0015 for 1K input tokens and $0.002 for 1K output tokens.)`;
-        vscode.window.showInformationMessage(message);
-    }
-
-    static async hasNoCSVData(config: MyConfig): Promise<boolean> {
-        const csvFile = path.join(config.docsPath, TOKENS_FILE);
-        const content = await Utils.getContent(csvFile);
-        return content.endsWith('time\n');
-    }
-
-    static async askForCSVOverwriting(config: MyConfig): Promise<void> {
-        if (await this.hasNoCSVData(config)) {return;}
-        const shouldOverWriteCSV = await vscode.window.showInformationMessage('Want to overwrite token usage file?', 'Yes', 'No') === 'Yes';
-        if (!shouldOverWriteCSV) {return;}
-        config.createCSVTokensFile();
-    }
-
-    static async appendCSVFile(content: string, docsPath: string): Promise<void>{
-        const filePath = path.join(docsPath, TOKENS_FILE);
-        const existingContent = await Utils.getContent(filePath);
-        await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(existingContent + content));
-    }
 
     static async writeFile(fileName: string, content: string, docsPath: string): Promise<void>{
         const filePath = path.join(docsPath, fileName);

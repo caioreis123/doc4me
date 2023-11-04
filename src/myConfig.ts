@@ -3,7 +3,7 @@ import * as path from 'path';
 import { PromptTemplate } from 'langchain/prompts';
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { LLMResult } from 'langchain/dist/schema';
-import { Utils } from './utils';
+import { BillCalculator } from './billCalculator';
 import * as fs from 'fs';
 
 export type SupportedLanguages = "cpp" | "go" | "java" | "js" | "php" | "proto" | "python" | "rst" | "ruby" | "rust" | "scala" | "swift" | "markdown" | "latex" | "html" | "sol";
@@ -127,7 +127,7 @@ export class MyConfig {
                     const totalTokens = usage.totalTokens;
                     const now = new Date().toISOString();
                     const csvLine = `${filePath},${inputTokens},${outputTokens},${totalTokens},${now}\n`;
-                    Utils.appendCSVFile(csvLine, this.docsPath);
+                    BillCalculator.appendCSVFile(csvLine, this.docsPath);
                 }
             }
         ];

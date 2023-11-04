@@ -5,6 +5,7 @@ import { MyConfig, ROOT_PATH } from "./myConfig";
 import { Utils } from "./utils";
 import { Explainer } from "./ai/explainer";
 import { Summarizer } from "./ai/summarizer";
+import { BillCalculator } from './billCalculator';
 
 class Commands{
     public commands: { [key: string]: () => Promise<void> };
@@ -31,7 +32,7 @@ class Commands{
     
     public async calculate(): Promise<void> {
         const config = new MyConfig();
-        await Utils.calculateTokens(config);
+        BillCalculator.calculateTokens(config);
     }
     
     public async documentCurrentDirectory(): Promise<void> {
@@ -43,7 +44,7 @@ class Commands{
     
     public async documentProject(): Promise<void> {
         const config = new MyConfig();
-        await Utils.askForCSVOverwriting(config);
+        await BillCalculator.askForCSVOverwriting(config);
         const filesToExplain = Utils.getFiles(ROOT_PATH, config.supportedFileExtension, config.directoriesToIgnore);
         await Explainer.explainFiles(filesToExplain, config);
         await Summarizer.summarizeDocs(config);
