@@ -1,0 +1,17 @@
+file,inputTokens,outputTokens,totalTokens,time
+/Users/caio/ifba/tcc/tcc/__init__.py,44,151,195,2023-11-03T22:46:53.511Z
+/Users/caio/ifba/tcc/tcc/helpers/file_transformation.py,390,375,765,2023-11-03T22:47:38.911Z
+/Users/caio/ifba/tcc/tcc/helpers/sub_directory/just_some_code.py,18,78,96,2023-11-03T22:47:51.828Z
+/Users/caio/ifba/tcc/tcc/helpers/utils.py,188,293,481,2023-11-03T22:48:28.637Z
+/Users/caio/ifba/tcc/tcc/hugging_face.py,731,343,1074,2023-11-03T22:49:19.423Z
+/Users/caio/ifba/tcc/tcc/main.py,2419,66,2485,2023-11-03T22:49:31.814Z
+/Users/caio/ifba/tcc/tcc/main.py,2190,169,2359,2023-11-03T22:49:57.002Z
+/Users/caio/ifba/tcc/tcc/main.py,2227,169,2396,2023-11-03T22:50:26.802Z
+/Users/caio/ifba/tcc/myDocs/tcc/__init__.md,171,137,308,2023-11-03T22:50:47.073Z
+/Users/caio/ifba/tcc/myDocs/tcc/helpers/file_transformation.md,395,93,488,2023-11-03T22:51:03.828Z
+/Users/caio/ifba/tcc/myDocs/tcc/helpers/sub_directory/just_some_code.md,98,67,165,2023-11-03T22:51:14.707Z
+/Users/caio/ifba/tcc/myDocs/tcc/helpers/utils.md,313,121,434,2023-11-03T22:51:35.028Z
+/Users/caio/ifba/tcc/myDocs/tcc/hugging_face.md,363,139,502,2023-11-03T22:51:57.089Z
+/Users/caio/ifba/tcc/myDocs/tcc/main.md,189,156,345,2023-11-03T22:52:25.289Z
+.md,835,802,1637,2023-11-03T22:54:11.540Z
+/Users/caio/ifba/tcc/tcc/helpers/file_transformation.py,393,407,800,2023-11-03T23:04:15.322Z

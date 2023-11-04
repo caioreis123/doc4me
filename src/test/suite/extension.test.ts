@@ -6,6 +6,9 @@ import { ERROR_MESSAGE, MyConfig, SUMMARY_FILE_NAME } from '../../myConfig';
 import { Utils } from '../../utils';
 import { Explainer } from '../../ai/explainer';
 import { Summarizer } from '../../ai/summarizer';
+import { BillCalculator } from '../../billCalculator';
+import * as fs from 'fs';
+
 let sinon = require('sinon');
 
 class MockedConfig extends MyConfig {
@@ -85,5 +88,14 @@ suite('Extension Test Suite', () => {
 		
 		let files = await gen2set(docFiles);
 		assert.strictEqual(files.size, 3);
+	});
+
+	test('should calculate bill properly', async () => {
+		sinon.stub(BillCalculator, 'hasNoCSVData').returns(false);
+		const tokenFixture = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'suite', 'tokensFixture.csv'), 'utf8');
+		sinon.stub(BillCalculator, 'getCSVContent').returns(tokenFixture);
+		const showBillStub = sinon.stub(BillCalculator, 'showBill');
+		BillCalculator.calculateTokens(conf);
+		assert(showBillStub.calledWith(10964, 3566));
 	});
 });
