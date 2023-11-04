@@ -36,6 +36,7 @@ export class AI{
         const llm = await config.getLLM(filePath);
         try{
             const llmResponse = await llm.predict(prompt + content);
+            console.log('got llm response');
             return llmResponse;
         }
         catch(error: any){

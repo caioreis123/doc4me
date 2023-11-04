@@ -34,7 +34,7 @@
           },
           "doc4me.projectExplanationPrompt": {
             "type": "string",
-            "default": "Explain what this code project do, given the following explanations of each file: \n",
+            "default": "Explain what this code project does, given the following explanations of each file: \n",
             "markdownDescription": "The prompt used to explain the whole project based on the explanation generated of each file."
           },
           "doc4me.fileExplanationPrompt": {
@@ -61,23 +61,23 @@
     "commands": [
       {
         "command": "doc4me.project",
-        "title": "Doc4me whole project"
-      },
-      {
-        "command": "doc4me.file",
-        "title": "Doc4me current file"
+        "title": "Doc4me - Whole project"
       },
       {
         "command": "doc4me.directory",
-        "title": "Doc4me current directory"
+        "title": "Doc4me - Current directory"
       },
       {
-        "command": "doc4me.calculate",
-        "title": "Doc4me - Calculate Billing"
+        "command": "doc4me.file",
+        "title": "Doc4me - Current file"
       },
       {
         "command": "doc4me.ask",
         "title": "Doc4me - Ask current file"
+      },
+      {
+        "command": "doc4me.calculate",
+        "title": "Doc4me - Calculate Billing"
       }
     ]
   },
