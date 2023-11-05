@@ -21,10 +21,35 @@ class Commands{
         };
     }
 
+    public async documentProject(): Promise<void> {
+        const config = new MyConfig();
+        await config.buildLLM();
+        await BillCalculator.askForCSVOverwriting(config);
+        const filesToExplain = Utils.getFiles(ROOT_PATH, config.supportedFileExtension, config.directoriesToIgnore);
+        await Explainer.explainFiles(filesToExplain, config);
+        await Summarizer.summarizeDocs(config);
+    }
+        
+    public async documentCurrentDirectory(): Promise<void> {
+        const config = new MyConfig();
+        await config.buildLLM();
+        const directoryPath = path.dirname(Utils.getCurrentFile());
+        const files = Utils.getFiles(directoryPath, config.supportedFileExtension, config.directoriesToIgnore);
+        await Explainer.explainFiles(files, config);
+    }
+    
+    public async documentCurrentFile(): Promise<void> {
+        const config = new MyConfig();
+        await config.buildLLM();
+        const currentFile = Utils.getCurrentFile();
+        await Explainer.explainFile(currentFile, config);
+    }
+
     public async askFile(): Promise<void> {
         const question = await vscode.window.showInputBox({prompt: 'What do you want to ask?', ignoreFocusOut: true});
         if (question) {
             const config = new MyConfig();
+            await config.buildLLM();
             const currentFile = Utils.getCurrentFile();
             await AI.askFile(currentFile, question, config);
         }
@@ -33,27 +58,6 @@ class Commands{
     public async calculate(): Promise<void> {
         const config = new MyConfig();
         BillCalculator.calculateTokens(config);
-    }
-    
-    public async documentCurrentDirectory(): Promise<void> {
-        const config = new MyConfig();
-        const directoryPath = path.dirname(Utils.getCurrentFile());
-        const files = Utils.getFiles(directoryPath, config.supportedFileExtension, config.directoriesToIgnore);
-        await Explainer.explainFiles(files, config);
-    }
-    
-    public async documentProject(): Promise<void> {
-        const config = new MyConfig();
-        await BillCalculator.askForCSVOverwriting(config);
-        const filesToExplain = Utils.getFiles(ROOT_PATH, config.supportedFileExtension, config.directoriesToIgnore);
-        await Explainer.explainFiles(filesToExplain, config);
-        await Summarizer.summarizeDocs(config);
-    }
-    
-    public async documentCurrentFile(): Promise<void> {
-        const config = new MyConfig();
-        const currentFile = Utils.getCurrentFile();
-        await Explainer.explainFile(currentFile, config);
     }
 }
 

@@ -33,15 +33,18 @@ export class AI{
     }
     
     static async askIA(prompt: string, content: string, filePath: string, config: MyConfig): Promise<string> {
-        const llm = await config.getLLM(filePath);
+        if(!config.llm){
+            throw new Error('LLM model not loaded');
+        }
         try{
-            const llmResponse = await llm.predict(prompt + content);
+            config.addCallbackToLLM(filePath)
+            const llmResponse = await config.llm.predict(prompt + content);
             console.log('got llm response');
             return llmResponse;
         }
         catch(error: any){
             if(error.code === 'context_length_exceeded'){
-                return await this.queryTextFragments(content, filePath, llm, config.refinePrompt);
+                return await this.queryTextFragments(content, filePath, config.llm, config.refinePrompt);
             }
             throw error;
         }

@@ -52,6 +52,7 @@ export class MyConfig {
     public readonly explainProjectPrompt: string;
     public readonly refinePrompt: PromptTemplate;
     public tokenFile: string = '';
+    public llm: ChatOpenAI | undefined;
 
     constructor(){
         // we need to create a new config here in order to get values changed by the user after the extension was activated
@@ -116,8 +117,24 @@ export class MyConfig {
         return value;
     }
 
-    public async getLLM(filePath: string): Promise<ChatOpenAI>{
+    public async buildLLM(): Promise<void>{
         const model: string = this.getConf('model');
+        
+        let apiKey = this.vsCodeConfig.get('doc4me.openaiAPIKey', '');
+
+        if (!apiKey) {
+            await vscode.window.showInputBox({prompt: 'Please enter your OpenAI API key', ignoreFocusOut: true}).then((inputValue) => {
+                if (inputValue) {
+                    this.vsCodeConfig.update('doc4me.openaiAPIKey', inputValue, true);
+                    apiKey = inputValue;
+                }
+            });
+        }
+        this.llm =  new ChatOpenAI({modelName:model, temperature: 0, openAIApiKey: apiKey});
+    }
+
+    public addCallbackToLLM(filePath: string): void{
+        if (!this.llm) {return;}
         const callbacks = [
             {
                 handleLLMEnd: async (output: LLMResult) => {
@@ -131,18 +148,6 @@ export class MyConfig {
                 }
             }
         ];
-        
-        let apiKey = this.vsCodeConfig.get('doc4me.openaiAPIKey', '');
-
-        if (!apiKey) {
-            await vscode.window.showInputBox({prompt: 'Please enter your OpenAI API key', ignoreFocusOut: true}).then((inputValue) => {
-                if (inputValue) {
-                    this.vsCodeConfig.update('doc4me.openaiAPIKey', inputValue, true);
-                    apiKey = inputValue;
-                }
-            });
-        }
-        
-        return new ChatOpenAI({modelName:model, temperature: 0, openAIApiKey: apiKey, callbacks:callbacks });
+        this.llm.callbacks = callbacks;
     }
 }
