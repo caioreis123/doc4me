@@ -3,7 +3,7 @@
   "displayName": "Doc4me",
   "description": "ai documentation generation tool",
   "icon": "./neonRobot.png",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "engines": {
     "vscode": "^1.81.0"
   },
