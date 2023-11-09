@@ -1,0 +1,19 @@
+This code is written in TypeScript and defines a class called `BillCalculator`. The class has several static methods that perform calculations and display information related to token usage and billing.
+
+The code begins by importing necessary modules and dependencies. It imports `MyConfig` and `TOKENS_FILE` from a file called "myConfig.ts", `Utils` from a file called "utils.ts", and the `vscode`, `path`, and `fs` modules.
+
+The `BillCalculator` class has the following static methods:
+
+1. `calculateTokens(config: MyConfig)`: This method takes a `MyConfig` object as a parameter and calculates the total number of input and output tokens used. It first checks if there is any CSV data available by calling the `hasNoCSVData` method. If there is no data, it displays an information message using the `vscode.window.showInformationMessage` method and returns. Otherwise, it retrieves the CSV content using the `getCSVContent` method and splits it into lines. It removes the header line using the `shift` method. Then, it iterates over each line and extracts the file, input tokens, output tokens, total tokens, and time values. If the total tokens value exists, it adds the input and output tokens to the respective variables. Finally, it calls the `showBill` method with the calculated input and output tokens.
+
+2. `showBill(input: number, output: number)`: This method takes the total number of input and output tokens as parameters and calculates the bill amount in dollars. It multiplies the input tokens by 0.0000015 and the output tokens by 0.000002 to get the dollar amounts. It then adds the two amounts to get the total bill. It constructs an information message string using template literals and displays it using the `vscode.window.showInformationMessage` method.
+
+3. `getCSVContent(config: MyConfig): string`: This method takes a `MyConfig` object as a parameter and retrieves the content of a CSV file specified by the `TOKENS_FILE` constant. It constructs the file path by joining the `docsPath` property of the `config` object with the `TOKENS_FILE` constant. It reads the file content using the `fs.readFileSync` method and returns it as a string.
+
+4. `hasNoCSVData(config: MyConfig): boolean`: This method takes a `MyConfig` object as a parameter and checks if the CSV content ends with the string "time\n". It calls the `getCSVContent` method to retrieve the content and uses the `endsWith` method to perform the check. It returns `true` if the content ends with "time\n", indicating that there is no data, and `false` otherwise.
+
+5. `askForCSVOverwriting(config: MyConfig): Promise<void>`: This method takes a `MyConfig` object as a parameter and prompts the user to confirm whether they want to overwrite the token usage file. It first checks if there is no CSV data by calling the `hasNoCSVData` method. If there is no data, it returns. Otherwise, it displays a confirmation message using the `vscode.window.showInformationMessage` method and waits for the user's response. If the response is "Yes", it calls the `createCSVTokensFile` method of the `config` object to overwrite the CSV file.
+
+6. `appendCSVFile(content: string, docsPath: string): Promise<void>`: This method takes a `content` string and a `docsPath` string as parameters and appends the `content` to a CSV file specified by the `TOKENS_FILE` constant. It constructs the file path by joining the `docsPath` with the `TOKENS_FILE` constant. It retrieves the existing content of the file using the `Utils.getContent` method and then writes the combined content to the file using the `vscode.workspace.fs.writeFile` method.
+
+Overall, this code defines a class that provides functionality for calculating token usage and displaying billing information based on CSV data. It also includes methods for retrieving and manipulating CSV files.

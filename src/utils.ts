@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {MyConfig, ROOT_PATH} from './myConfig';
+import {DOC_EXTENSION, MyConfig, ROOT_PATH} from './myConfig';
 
 export class Utils{
     static readFile = vscode.workspace.fs.readFile;
@@ -27,7 +27,7 @@ export class Utils{
      * @param {string[]} supportedCodeLanguages - The file extensions to get.
      * @param {string[]} directoriesToIgnore - The directories to ignore. Important for avoiding explaining directories like node_modules. On explanation it get its value from the directoriesToIgnore config. On summarization has no value.
      */
-    static async * getFiles(dir: string, supportedCodeLanguages: string[] = ['md'], directoriesToIgnore: string[] = ['']): AsyncGenerator<string> {
+    static async * getFiles(dir: string, supportedCodeLanguages: string[], directoriesToIgnore: string[]): AsyncGenerator<string> {
         const fileList = await vscode.workspace.fs.readDirectory(vscode.Uri.file(dir));
         for (const [name, type] of fileList) {
             // skip hidden files/directories
@@ -64,7 +64,7 @@ export class Utils{
     }
 
     static getDocFile(file: string, config: MyConfig): vscode.Uri{
-        const docPath: string = file.replace(ROOT_PATH, config.docsPath).slice(0, -2) + "md";
+        const docPath: string = file.replace(ROOT_PATH, config.docsPath).slice(0, -2) + DOC_EXTENSION;
         return vscode.Uri.file(docPath);
     }
 

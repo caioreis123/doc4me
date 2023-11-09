@@ -8,7 +8,7 @@ import * as fs from 'fs';
 
 export type SupportedLanguages = "cpp" | "go" | "java" | "js" | "php" | "proto" | "python" | "rst" | "ruby" | "rust" | "scala" | "swift" | "markdown" | "latex" | "html" | "sol";
 
-export const fileExtensionToLanguage: { [extension: string]: SupportedLanguages } = {
+export const FILE_EXTENSION_TO_LANGUAGE: { [extension: string]: SupportedLanguages } = {
     "cpp": "cpp",
     "go": "go",
     "java": "java",
@@ -29,17 +29,20 @@ export const fileExtensionToLanguage: { [extension: string]: SupportedLanguages 
 
 export const ROOT_PATH: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
 export const SUMMARIZE_PROMPT: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
-export const SUMMARY_FILE_NAME = 'projectSummary.md';
+export const DOC_EXTENSION = 'md';
+export const SUMMARY_FILE_NAME = `projectSummary.${DOC_EXTENSION}`;
 export const ERROR_MESSAGE = 'Could not get AI response. ';
-export const ASK_FILE = 'ask.txt';
+export const ASK_FILE = `ask.${DOC_EXTENSION}`;
 export const TOKENS_FILE = 'tokens.csv';
+
+const supportedCodeExtensionsThatDoNotHaveTextSplitter = "ts";
 
 const defaultConfig: { [key: string]: string } = {
     model: "gpt-3.5-turbo",
     docsPath: path.join(ROOT_PATH, 'docs'),
-    supportedCodeExtensions: Object.keys(fileExtensionToLanguage).filter((ext) => ext !== "md").join(','), // important to avoid explaining markdown files with markdown,
+    supportedCodeExtensions: Object.keys(FILE_EXTENSION_TO_LANGUAGE).filter((ext) => ext !== "md").join(',') + `,${supportedCodeExtensionsThatDoNotHaveTextSplitter}`, // important to avoid explaining markdown files,
     directoriesToIgnore: "test,tests,docs,node_modules,dist,target,build,out,bin",
-    fileExplanationPrompt: 'Explain this code: \n',
+    fileExplanationPrompt: 'Use markdown format to explain this code in detail: \n',
     projectExplanationPrompt: 'Explain what this code project do, given the following explanations of each file: \n',
 };
 

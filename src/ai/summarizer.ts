@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { AI } from "./ai";
-import { ASK_FILE, ERROR_MESSAGE, MyConfig, SUMMARIZE_PROMPT, SUMMARY_FILE_NAME, TOKENS_FILE } from "../myConfig";
+import { ASK_FILE, DOC_EXTENSION, ERROR_MESSAGE, MyConfig, SUMMARIZE_PROMPT, SUMMARY_FILE_NAME, TOKENS_FILE } from "../myConfig";
 import { Utils } from "../utils";
 
 
@@ -15,7 +15,7 @@ export class Summarizer {
 
     static async getFileSummarizations(config: MyConfig): Promise<string> {
         let fileSummarizations: string = '';
-        const docFiles = Utils.getFiles(config.docsPath);
+        const docFiles = Utils.getFiles(config.docsPath, [DOC_EXTENSION], ['']);
         for await (const file of docFiles) {
             if (file.endsWith(SUMMARY_FILE_NAME) || file.endsWith(ASK_FILE) || file.endsWith(TOKENS_FILE)) { continue; } // avoids auxiliary files
             const fileContent = await Utils.readFile(vscode.Uri.file(file));
@@ -28,12 +28,13 @@ export class Summarizer {
     }
 
     /**
-     * @param {string} summarization - A string with a paragraph for each file explanation separated by \n\n. This string will be used as input to generate a unified summary of the project.
+     * @param {string} summarizationByFile - A string with a paragraph for each file explanation separated by \n\n. This string will be used as input to generate a unified summary of the project.
      * @param {MyConfig} myConfig - The configuration object.
      * @returns {Promise<void>} - A promise that resolves when the summary file is written.
      */
-    static async summarizeProject(summarization: string, myConfig: MyConfig): Promise<void> {
-        const projectSummary = await AI.askIA(myConfig.explainProjectPrompt, summarization, '.md', myConfig);
-        Utils.writeFile(SUMMARY_FILE_NAME, projectSummary, myConfig.docsPath);
+    static async summarizeProject(summarizationByFile: string, myConfig: MyConfig): Promise<void> {
+        const projectSummary = await AI.askIA(myConfig.explainProjectPrompt, summarizationByFile, SUMMARY_FILE_NAME, myConfig);
+        const fullSummary = `${projectSummary}\n\n############\n\n${summarizationByFile}`;
+        Utils.writeFile(SUMMARY_FILE_NAME, fullSummary, myConfig.docsPath);
     }
 }

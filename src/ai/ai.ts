@@ -1,4 +1,4 @@
-import { ASK_FILE, ERROR_MESSAGE, MyConfig, SupportedLanguages, fileExtensionToLanguage } from "../myConfig";
+import { ASK_FILE, ERROR_MESSAGE, MyConfig, SupportedLanguages, FILE_EXTENSION_TO_LANGUAGE } from "../myConfig";
 import * as vscode from 'vscode';
 import { Utils } from "../utils";
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
@@ -12,7 +12,7 @@ export class AI{
         console.log(`Splitting big file in chunks: ${filePath}`);
         try{
             const fileExtension: string = filePath.split('.').pop() || '';
-            const fileLanguage: SupportedLanguages = fileExtensionToLanguage[fileExtension];
+            const fileLanguage: SupportedLanguages = FILE_EXTENSION_TO_LANGUAGE[fileExtension];
             const splitConfig = {
                 chunkSize: 10000, // this number was found empirically trying to find the maximum number of tokens that OpenAI can process per call
                 chunkOverlap: 0,
@@ -37,7 +37,7 @@ export class AI{
             throw new Error('LLM model not loaded');
         }
         try{
-            config.addCallbackToLLM(filePath)
+            config.addCallbackToLLM(filePath);
             const llmResponse = await config.llm.predict(prompt + content);
             console.log('got llm response');
             return llmResponse;
