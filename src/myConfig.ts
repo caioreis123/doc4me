@@ -28,7 +28,7 @@ export const FILE_EXTENSION_TO_LANGUAGE: { [extension: string]: SupportedLanguag
 };
 
 export const ROOT_PATH: string = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-export const SUMMARIZE_PROMPT: string = "Summarize the following code explanation in at most one paragraph:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
+export const SUMMARIZE_PROMPT: string = "Summarize the following code explanation in at most one paragraph using the same language used on the explanation, which means to answer in portuguese if the explanation is written in portuguese. The explanation is:\n"; // does not need to be configurable since the output depends on the explainProjectPrompt
 export const DOC_EXTENSION = 'md';
 export const SUMMARY_FILE_NAME = `projectSummary.${DOC_EXTENSION}`;
 export const ERROR_MESSAGE = 'Could not get AI response. ';
@@ -43,7 +43,7 @@ const defaultConfig: { [key: string]: string } = {
     supportedCodeExtensions: Object.keys(FILE_EXTENSION_TO_LANGUAGE).filter((ext) => ext !== "md").join(',') + `,${supportedCodeExtensionsThatDoNotHaveTextSplitter}`, // important to avoid explaining markdown files,
     directoriesToIgnore: "test,tests,docs,node_modules,dist,target,build,out,bin",
     fileExplanationPrompt: 'Use markdown format to explain this code in detail: \n',
-    projectExplanationPrompt: 'Explain what this code project do, given the following explanations of each file: \n',
+    projectExplanationPrompt: 'Explain what this code project do, based on the following file explanations and using the same language of these explanations, which means to answer in portuguese if the explanation are written in portuguese. The explanations are: \n',
 };
 
 export class MyConfig {
